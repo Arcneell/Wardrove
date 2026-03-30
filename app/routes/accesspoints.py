@@ -46,7 +46,7 @@ async def geojson(
 ):
     db = await get_db()
     try:
-        conditions = []
+        conditions = ["device_type = 'WIFI'"]
         params = []
 
         if encryption:

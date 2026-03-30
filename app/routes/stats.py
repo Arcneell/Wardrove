@@ -59,17 +59,17 @@ async def create_profile(body: ProfileCreate):
 async def get_stats():
     db = await get_db()
     try:
-        cursor = await db.execute("SELECT COUNT(*) as total FROM access_points")
+        cursor = await db.execute("SELECT COUNT(*) as total FROM access_points WHERE device_type = 'WIFI'")
         total = (await cursor.fetchone())["total"]
 
         cursor = await db.execute(
-            "SELECT encryption, COUNT(*) as count FROM access_points GROUP BY encryption"
+            "SELECT encryption, COUNT(*) as count FROM access_points WHERE device_type = 'WIFI' GROUP BY encryption"
         )
         by_encryption = {row["encryption"]: row["count"] for row in await cursor.fetchall()}
 
         cursor = await db.execute(
             """SELECT ssid, COUNT(*) as count FROM access_points
-            WHERE ssid != '' GROUP BY ssid ORDER BY count DESC LIMIT 10"""
+            WHERE ssid != '' AND device_type = 'WIFI' GROUP BY ssid ORDER BY count DESC LIMIT 10"""
         )
         top_ssids = [{"ssid": row["ssid"], "count": row["count"]} for row in await cursor.fetchall()]
 
