@@ -43,29 +43,31 @@ CREATE INDEX IF NOT EXISTS idx_coords ON access_points(latitude, longitude);
 """
 
 # XP rewards
-XP_PER_IMPORT = 2
-XP_PER_UPDATE = 1
-XP_PER_SESSION = 10
+XP_PER_IMPORT = 1
+XP_PER_UPDATE = 0
+XP_PER_SESSION = 5
 
-# Level thresholds: level N requires N*(N-1)*150 total XP
-# Lvl 1: 0, Lvl 2: 300, Lvl 3: 900, Lvl 4: 1800, Lvl 5: 3000, Lvl 10: 13500, ...
+# Level thresholds: level N requires N*(N-1)*100 total XP
+# Lvl 2: 200, Lvl 5: 2000, Lvl 10: 9000, Lvl 20: 38000, Lvl 50: 245000, Lvl 100: 990000
 RANK_TITLES = {
     1: "Script Kiddie",
-    2: "Packet Sniffer",
-    3: "Signal Hunter",
-    4: "Spectrum Crawler",
-    5: "RF Scout",
-    7: "Wave Rider",
-    10: "Airspace Mapper",
-    13: "Ether Walker",
-    16: "Frequency Ghost",
-    20: "Wardriving Legend",
-    25: "Omniscient Eye",
+    3: "Packet Sniffer",
+    5: "Signal Hunter",
+    8: "Spectrum Crawler",
+    12: "RF Scout",
+    16: "Wave Rider",
+    22: "Airspace Mapper",
+    30: "Ether Walker",
+    40: "Frequency Ghost",
+    55: "Wardriving Legend",
+    70: "Phantom Scanner",
+    85: "Radio God",
+    100: "Omniscient Eye",
 }
 
 
 def xp_for_level(level: int) -> int:
-    return level * (level - 1) * 150
+    return level * (level - 1) * 100
 
 
 def level_from_xp(xp: int) -> int:
