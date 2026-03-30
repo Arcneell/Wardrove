@@ -106,13 +106,14 @@ let activePopup = null;
 window.popupNav = function(dir) {
     if (!popupFeatures.length) return;
     popupIndex = (popupIndex + dir + popupFeatures.length) % popupFeatures.length;
-    const container = activePopup._contentNode || activePopup.getElement();
-    if (!container) return;
-    container.querySelectorAll('.popup-ap').forEach(el => {
-        el.style.display = parseInt(el.dataset.popupIdx) === popupIndex ? 'block' : 'none';
-    });
-    const idx = container.querySelector('#popupIdx');
-    if (idx) idx.textContent = popupIndex + 1;
+
+    // Move popup to the new AP's real position
+    const f = popupFeatures[popupIndex];
+    const [lng, lat] = f.geometry.coordinates;
+    const newLatLng = L.latLng(lat, lng);
+    activePopup.setLatLng(newLatLng);
+    activePopup.setContent(buildPopupContent(popupFeatures, popupIndex));
+    map.panTo(newLatLng, { animate: true, duration: 0.3 });
 };
 
 // ─── Profile ─────────────────────────────────────────────
