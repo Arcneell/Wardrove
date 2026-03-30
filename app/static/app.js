@@ -104,30 +104,25 @@ let popupIndex = 0;
 let activePopup = null;
 
 window.popupNav = function(dir) {
-    if (!popupFeatures.length) return;
+    if (!popupFeatures.length || !activePopup) return;
     popupIndex = (popupIndex + dir + popupFeatures.length) % popupFeatures.length;
 
+    // Toggle visibility directly in the DOM — no setContent, no close/reopen
+    const wrapper = activePopup.getElement();
+    if (!wrapper) return;
+    wrapper.querySelectorAll('.popup-ap').forEach(el => {
+        el.style.display = parseInt(el.dataset.popupIdx) === popupIndex ? 'block' : 'none';
+    });
+    const idx = wrapper.querySelector('#popupIdx');
+    if (idx) idx.textContent = popupIndex + 1;
+
+    // Move popup + pan if AP is at a different location
     const f = popupFeatures[popupIndex];
     const [lng, lat] = f.geometry.coordinates;
     const newLatLng = L.latLng(lat, lng);
-    const oldLatLng = activePopup.getLatLng();
-
-    // Check if the new AP is far enough to warrant a pan
-    const dist = oldLatLng.distanceTo(newLatLng);
-
-    if (dist > 5) {
-        // Different location — pan and reopen
-        map.closePopup();
-        map.once('moveend', () => {
-            activePopup = L.popup({ maxWidth: 280, maxHeight: 300, className: 'custom-popup' })
-                .setLatLng(newLatLng)
-                .setContent(buildPopupContent(popupFeatures, popupIndex))
-                .openOn(map);
-        });
+    if (activePopup.getLatLng().distanceTo(newLatLng) > 5) {
+        activePopup.setLatLng(newLatLng);
         map.panTo(newLatLng, { animate: true, duration: 0.25 });
-    } else {
-        // Same spot — just update content in place
-        activePopup.setContent(buildPopupContent(popupFeatures, popupIndex));
     }
 };
 
