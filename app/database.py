@@ -91,11 +91,24 @@ async def get_db() -> aiosqlite.Connection:
     return db
 
 
+async def _column_exists(db, table: str, column: str) -> bool:
+    cursor = await db.execute(f"PRAGMA table_info({table})")
+    cols = await cursor.fetchall()
+    return any(c["name"] == column for c in cols)
+
+
+async def _migrate(db):
+    """Add missing columns to existing tables so old DBs survive upgrades."""
+    if not await _column_exists(db, "sessions", "xp_earned"):
+        await db.execute("ALTER TABLE sessions ADD COLUMN xp_earned INTEGER DEFAULT 0")
+
+
 async def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = await get_db()
     try:
         await db.executescript(SCHEMA)
+        await _migrate(db)
         await db.commit()
     finally:
         await db.close()

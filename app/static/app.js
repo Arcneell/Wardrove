@@ -269,11 +269,11 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
 });
 
 fileInput.addEventListener('change', () => {
-    if (fileInput.files.length) uploadFile(fileInput.files[0]);
+    if (fileInput.files.length) uploadFiles(fileInput.files);
 });
 
 function resetUploadUI() {
@@ -284,13 +284,15 @@ function resetUploadUI() {
     fileInput.value = '';
 }
 
-async function uploadFile(file) {
+async function uploadFiles(fileList) {
     progressBar.style.display = 'block';
     uploadResult.style.display = 'none';
     progressFill.style.width = '30%';
 
     const form = new FormData();
-    form.append('file', file);
+    for (const file of fileList) {
+        form.append('files', file);
+    }
 
     try {
         progressFill.style.width = '60%';
@@ -300,10 +302,10 @@ async function uploadFile(file) {
         if (!res.ok) throw new Error('Upload failed');
 
         const data = await res.json();
-        document.getElementById('resImported').textContent = data.imported;
-        document.getElementById('resUpdated').textContent = data.updated;
-        document.getElementById('resSkipped').textContent = data.skipped;
-        document.getElementById('resXp').textContent = '+' + data.xp_earned;
+        document.getElementById('resImported').textContent = data.total_imported;
+        document.getElementById('resUpdated').textContent = data.total_updated;
+        document.getElementById('resSkipped').textContent = data.total_skipped;
+        document.getElementById('resXp').textContent = '+' + data.total_xp_earned;
         uploadResult.style.display = 'block';
 
         loadStats();
@@ -312,6 +314,80 @@ async function uploadFile(file) {
     } catch (e) {
         console.error('Upload error:', e);
         progressFill.style.background = '#dc3545';
+    }
+}
+
+// ─── Export ──────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click', () => {
+    window.location.href = '/api/export';
+});
+
+// ─── Navigation Map / Bluetooth ──────────────────────────
+const navMap = document.getElementById('navMap');
+const navBt = document.getElementById('navBt');
+const mapEl = document.getElementById('map');
+const btPage = document.getElementById('btPage');
+const sidebar = document.getElementById('sidebar');
+
+navMap.addEventListener('click', () => {
+    navMap.classList.add('active');
+    navBt.classList.remove('active');
+    mapEl.style.display = '';
+    btPage.style.display = 'none';
+    sidebar.style.display = '';
+    map.invalidateSize();
+});
+
+navBt.addEventListener('click', () => {
+    navBt.classList.add('active');
+    navMap.classList.remove('active');
+    mapEl.style.display = 'none';
+    btPage.style.display = 'flex';
+    sidebar.style.display = 'none';
+    loadBluetooth();
+});
+
+// ─── Bluetooth ───────────────────────────────────────────
+let btSearchTimeout;
+document.getElementById('btSearch').addEventListener('input', () => {
+    clearTimeout(btSearchTimeout);
+    btSearchTimeout = setTimeout(loadBluetooth, 400);
+});
+
+async function loadBluetooth() {
+    try {
+        const search = document.getElementById('btSearch').value.trim();
+        const params = new URLSearchParams();
+        if (search) params.set('search', search);
+
+        const res = await fetch('/api/bluetooth?' + params);
+        const data = await res.json();
+
+        document.getElementById('btTotal').textContent = data.total;
+
+        const tbody = document.getElementById('btTableBody');
+        if (data.devices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="bt-empty">No Bluetooth devices found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.devices.map(d => {
+            const typeCls = d.device_type === 'BLE' ? 'ble' : 'bt';
+            const name = d.ssid
+                ? `<span class="bt-name">${escapeHtml(d.ssid)}</span>`
+                : `<span class="bt-name empty">unnamed</span>`;
+            return `<tr>
+                <td>${name}</td>
+                <td><span class="bt-mac">${escapeHtml(d.bssid)}</span></td>
+                <td><span class="bt-type-badge ${typeCls}">${d.device_type}</span></td>
+                <td><span class="bt-signal">${d.rssi} dBm</span></td>
+                <td><span class="bt-coords">${d.latitude.toFixed(4)}, ${d.longitude.toFixed(4)}</span></td>
+                <td><span class="bt-date">${d.first_seen}</span></td>
+                <td><span class="bt-date">${d.last_seen}</span></td>
+            </tr>`;
+        }).join('');
+    } catch (e) {
+        console.error('Failed to load bluetooth:', e);
     }
 }
 

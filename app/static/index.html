@@ -15,13 +15,18 @@
     <div style="display:flex;align-items:center;gap:12px;">
         <button class="hamburger" id="hamburgerBtn">&#9776;</button>
         <div class="logo">wardrove<span>.db</span></div>
+        <nav class="header-nav">
+            <button class="nav-tab active" id="navMap">Map</button>
+            <button class="nav-tab" id="navBt">Bluetooth</button>
+        </nav>
     </div>
-    <div style="display:flex;align-items:center;gap:14px;">
+    <div style="display:flex;align-items:center;gap:10px;">
         <div class="header-profile" id="headerProfile" style="display:none;">
             <span class="header-level" id="headerLevel">Lvl 1</span>
             <span class="header-pseudo" id="headerPseudo"></span>
         </div>
-        <button class="btn" id="uploadBtn"><span class="btn-icon">&#8686;</span>Upload CSV</button>
+        <button class="btn btn-secondary" id="exportBtn">Export CSV</button>
+        <button class="btn" id="uploadBtn"><span class="btn-icon">&#8686;</span>Upload</button>
     </div>
 </header>
 
@@ -97,6 +102,37 @@
     </aside>
 
     <div id="map"></div>
+
+    <!-- Bluetooth page -->
+    <div id="btPage" class="bt-page" style="display:none;">
+        <div class="bt-header">
+            <div class="bt-stats">
+                <div class="bt-stat-box">
+                    <div class="bt-stat-number" id="btTotal">0</div>
+                    <div class="bt-stat-label">Bluetooth devices</div>
+                </div>
+            </div>
+            <input type="text" class="search-input bt-search" id="btSearch" placeholder="Search by name or MAC...">
+        </div>
+        <div class="bt-table-wrap">
+            <table class="bt-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>MAC Address</th>
+                        <th>Type</th>
+                        <th>Signal</th>
+                        <th>Location</th>
+                        <th>First Seen</th>
+                        <th>Last Seen</th>
+                    </tr>
+                </thead>
+                <tbody id="btTableBody">
+                    <tr><td colspan="7" class="bt-empty">No Bluetooth devices found</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Pseudo Modal (first time) -->
@@ -116,9 +152,9 @@
     <div class="modal">
         <h2>Upload WiGLE CSV</h2>
         <div class="drop-zone" id="dropZone">
-            <p>Drag & drop your .wigle.csv file here</p>
+            <p>Drag & drop your .wigle.csv files here</p>
             <button class="btn" id="browseBtn">Browse</button>
-            <input type="file" id="fileInput" accept=".csv" style="display:none">
+            <input type="file" id="fileInput" accept=".csv" multiple style="display:none">
         </div>
         <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
         <div class="upload-result" id="uploadResult">
