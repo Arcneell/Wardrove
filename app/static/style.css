@@ -364,6 +364,49 @@ body {
     font-weight: 600;
 }
 
+/* Multi-AP popup navigation */
+.popup-multi {
+    min-width: 200px;
+}
+
+.popup-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.popup-nav-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.popup-nav-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.popup-nav-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
 /* Upload modal */
 .modal-overlay {
     display: none;

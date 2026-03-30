@@ -23,18 +23,20 @@ if ('geolocation' in navigator) {
     );
 }
 
-const markers = L.markerClusterGroup({
-    maxClusterRadius: 30,
-    spiderfyOnMaxZoom: true,
+// Clustering at low zoom, individual markers at high zoom (>=17)
+const markersLayer = L.markerClusterGroup({
+    maxClusterRadius: 40,
+    disableClusteringAtZoom: 17,
+    spiderfyOnMaxZoom: false,
     showCoverageOnHover: false,
-    spiderfyDistanceMultiplier: 2,
-    zoomToBoundsOnClick: true,
+    chunkedLoading: true,
 });
-map.addLayer(markers);
+map.addLayer(markersLayer);
+let currentFeatures = [];
 
 // ─── Heatmap ─────────────────────────────────────────────
 let heatLayer = null;
-let viewMode = 'markers'; // 'markers' | 'heat'
+let viewMode = 'markers';
 
 function setViewMode(mode) {
     viewMode = mode;
@@ -42,9 +44,9 @@ function setViewMode(mode) {
     document.getElementById('btnViewHeat').classList.toggle('active', mode === 'heat');
     if (mode === 'markers') {
         if (heatLayer) map.removeLayer(heatLayer);
-        map.addLayer(markers);
+        map.addLayer(markersLayer);
     } else {
-        map.removeLayer(markers);
+        map.removeLayer(markersLayer);
         if (heatLayer) map.addLayer(heatLayer);
     }
 }
@@ -53,6 +55,65 @@ document.getElementById('btnViewMarkers').addEventListener('click', () => setVie
 document.getElementById('btnViewHeat').addEventListener('click', () => setViewMode('heat'));
 
 let encChart = null;
+
+// ─── Overlapping AP detection ────────────────────────────
+function findOverlapping(targetFeature) {
+    const [tLng, tLat] = targetFeature.geometry.coordinates;
+    const threshold = 0.00008; // ~8m
+    return currentFeatures.filter(f => {
+        const [lng, lat] = f.geometry.coordinates;
+        return Math.abs(lat - tLat) < threshold && Math.abs(lng - tLng) < threshold;
+    });
+}
+
+function buildPopupContent(features, activeIndex) {
+    const total = features.length;
+    const multi = total > 1;
+
+    let html = '<div class="popup-multi">';
+    if (multi) {
+        html += `<div class="popup-nav">
+            <button class="popup-nav-btn" onclick="popupNav(-1)">&larr;</button>
+            <span class="popup-nav-count"><span id="popupIdx">${activeIndex + 1}</span> / ${total}</span>
+            <button class="popup-nav-btn" onclick="popupNav(1)">&rarr;</button>
+        </div>`;
+    }
+
+    features.forEach((f, i) => {
+        const p = f.properties;
+        const encColor = ENC_COLORS[p.encryption] || ENC_COLORS.Unknown;
+        const display = (multi && i !== activeIndex) ? 'none' : 'block';
+        html += `<div class="popup-ap" data-popup-idx="${i}" style="display:${display}">
+            <div><span class="popup-label">SSID:</span> ${escapeHtml(p.ssid) || '<i>hidden</i>'}</div>
+            <div><span class="popup-label">BSSID:</span> ${escapeHtml(p.bssid)}</div>
+            <div><span class="popup-label">Encryption:</span> <span class="popup-enc" style="background:${encColor}20;color:${encColor}">${p.encryption}</span></div>
+            <div><span class="popup-label">Channel:</span> ${p.channel}</div>
+            <div><span class="popup-label">Signal:</span> ${p.rssi} dBm</div>
+            <div><span class="popup-label">First seen:</span> ${p.first_seen}</div>
+            <div><span class="popup-label">Last seen:</span> ${p.last_seen}</div>
+        </div>`;
+    });
+
+    html += '</div>';
+    return html;
+}
+
+// Global navigation state for popup
+let popupFeatures = [];
+let popupIndex = 0;
+let activePopup = null;
+
+window.popupNav = function(dir) {
+    if (!popupFeatures.length) return;
+    popupIndex = (popupIndex + dir + popupFeatures.length) % popupFeatures.length;
+    const container = activePopup._contentNode || activePopup.getElement();
+    if (!container) return;
+    container.querySelectorAll('.popup-ap').forEach(el => {
+        el.style.display = parseInt(el.dataset.popupIdx) === popupIndex ? 'block' : 'none';
+    });
+    const idx = container.querySelector('#popupIdx');
+    if (idx) idx.textContent = popupIndex + 1;
+};
 
 // ─── Profile ─────────────────────────────────────────────
 async function checkProfile() {
@@ -204,41 +265,45 @@ async function loadGeoJSON() {
         const res = await fetch('/api/accesspoints/geojson?' + params);
         const geojson = await res.json();
 
-        markers.clearLayers();
-        if (geojson.features.length === 0) return;
+        markersLayer.clearLayers();
+        currentFeatures = geojson.features || [];
 
-        const layer = L.geoJSON(geojson, {
-            pointToLayer: (feature, latlng) => {
-                const enc = feature.properties.encryption || 'Unknown';
-                return L.circleMarker(latlng, {
-                    radius: 7,
-                    fillColor: ENC_COLORS[enc] || ENC_COLORS.Unknown,
-                    color: 'rgba(0,0,0,0.12)',
-                    weight: 1,
-                    fillOpacity: 0.85,
-                });
-            },
-            onEachFeature: (feature, layer) => {
-                const p = feature.properties;
-                const encColor = ENC_COLORS[p.encryption] || ENC_COLORS.Unknown;
-                layer.bindPopup(`
-                    <div>
-                        <div><span class="popup-label">SSID:</span> ${escapeHtml(p.ssid) || '<i>hidden</i>'}</div>
-                        <div><span class="popup-label">BSSID:</span> ${escapeHtml(p.bssid)}</div>
-                        <div><span class="popup-label">Encryption:</span> <span class="popup-enc" style="background:${encColor}20;color:${encColor}">${p.encryption}</span></div>
-                        <div><span class="popup-label">Channel:</span> ${p.channel}</div>
-                        <div><span class="popup-label">Signal:</span> ${p.rssi} dBm</div>
-                        <div><span class="popup-label">First seen:</span> ${p.first_seen}</div>
-                        <div><span class="popup-label">Last seen:</span> ${p.last_seen}</div>
-                    </div>
-                `);
-            },
+        if (currentFeatures.length === 0) return;
+
+        const bounds = L.latLngBounds();
+
+        currentFeatures.forEach(feature => {
+            const [lng, lat] = feature.geometry.coordinates;
+            const enc = feature.properties.encryption || 'Unknown';
+            const latlng = L.latLng(lat, lng);
+            bounds.extend(latlng);
+
+            const marker = L.circleMarker(latlng, {
+                radius: 6,
+                fillColor: ENC_COLORS[enc] || ENC_COLORS.Unknown,
+                color: 'rgba(0,0,0,0.15)',
+                weight: 1,
+                fillOpacity: 0.85,
+            });
+
+            marker.on('click', () => {
+                const nearby = findOverlapping(feature);
+                popupFeatures = nearby;
+                popupIndex = nearby.indexOf(feature);
+                if (popupIndex === -1) popupIndex = 0;
+
+                const popup = L.popup({ maxWidth: 280, maxHeight: 300, className: 'custom-popup' })
+                    .setLatLng(latlng)
+                    .setContent(buildPopupContent(nearby, popupIndex))
+                    .openOn(map);
+                activePopup = popup;
+            });
+
+            markersLayer.addLayer(marker);
         });
 
-        markers.addLayer(layer);
-
-        // Build heatmap from same data
-        const heatData = geojson.features.map(f => {
+        // Build heatmap
+        const heatData = currentFeatures.map(f => {
             const [lng, lat] = f.geometry.coordinates;
             const rssi = f.properties.rssi || -100;
             const intensity = Math.max(0.05, Math.min(1, (rssi + 100) / 60));
@@ -253,7 +318,7 @@ async function loadGeoJSON() {
         });
         if (viewMode === 'heat') map.addLayer(heatLayer);
 
-        map.fitBounds(markers.getBounds(), { padding: [30, 30] });
+        map.fitBounds(bounds, { padding: [30, 30] });
     } catch (e) {
         console.error('Failed to load GeoJSON:', e);
     }
