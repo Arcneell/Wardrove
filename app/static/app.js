@@ -116,14 +116,12 @@ window.popupNav = function(dir) {
     const idx = wrapper.querySelector('#popupIdx');
     if (idx) idx.textContent = popupIndex + 1;
 
-    // Move popup + pan if AP is at a different location
+    // Always move popup to the AP's real position and pan the map
     const f = popupFeatures[popupIndex];
     const [lng, lat] = f.geometry.coordinates;
     const newLatLng = L.latLng(lat, lng);
-    if (activePopup.getLatLng().distanceTo(newLatLng) > 5) {
-        activePopup.setLatLng(newLatLng);
-        map.panTo(newLatLng, { animate: true, duration: 0.25 });
-    }
+    activePopup.setLatLng(newLatLng);
+    map.panTo(newLatLng, { animate: true, duration: 0.25 });
 };
 
 // ─── Profile ─────────────────────────────────────────────
