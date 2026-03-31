@@ -21,8 +21,9 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
     restart: unless-stopped
 
-  worker:
+  worker-1:
     build: .
+    container_name: wardrove-worker-1
     command: ["python", "-m", "arq", "app.tasks.worker.WorkerSettings"]
     depends_on:
       postgres:
@@ -35,8 +36,23 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - WORKER_MAX_JOBS=10
-    deploy:
-      replicas: 2
+    restart: unless-stopped
+
+  worker-2:
+    build: .
+    container_name: wardrove-worker-2
+    command: ["python", "-m", "arq", "app.tasks.worker.WorkerSettings"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - TZ=Indian/Reunion
+      - DATABASE_URL=postgresql+asyncpg://wardrove:${DB_PASSWORD:-wardrove}@postgres:5432/wardrove
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - WORKER_MAX_JOBS=10
     restart: unless-stopped
 
   postgres:

@@ -1,10 +1,9 @@
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import get_settings
 
 settings = get_settings()
-
-import ssl as _ssl
 
 engine = create_async_engine(
     settings.database_url,
@@ -25,10 +24,29 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
-    """Create all tables. Used during startup or by Alembic."""
+    """Create all tables and add missing columns for schema updates."""
     from app.models.base import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Add columns that create_all won't add to existing tables
+        await _add_missing_columns(conn)
+
+
+async def _add_missing_columns(conn):
+    """Safely add columns that may not exist on older databases."""
+    migrations = [
+        ("badge_definitions", "icon_emoji", "VARCHAR(8)"),
+        ("badge_definitions", "category", "VARCHAR(32)"),
+        ("badge_definitions", "tier", "INTEGER DEFAULT 1"),
+        ("upload_transactions", "gps_points", "INTEGER DEFAULT 0"),
+    ]
+    for table, column, col_type in migrations:
+        try:
+            await conn.execute(
+                text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+            )
+        except Exception:
+            pass  # Column already exists
 
 
 # --- XP System (migrated from old database.py) ---

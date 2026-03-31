@@ -43,13 +43,14 @@ async def update_profile(
     return await get_user_stats(db, user)
 
 
-@router.get("/{user_id}", response_model=UserStats)
-async def public_profile(
-    user_id: int,
+# Static paths MUST be before {user_id} to avoid FastAPI matching them as int
+@router.get("/u/{username}")
+async def public_profile_by_username(
+    username: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get a user's public profile."""
-    result = await db.execute(select(User).where(User.id == user_id))
+    """Get a user's public profile by username."""
+    result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -61,13 +62,13 @@ async def public_profile(
     return stats
 
 
-@router.get("/u/{username}")
-async def public_profile_by_username(
-    username: str,
+@router.get("/{user_id}")
+async def public_profile(  # no response_model: returns extended stats with badges
+    user_id: int,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get a user's public profile by username."""
-    result = await db.execute(select(User).where(User.username == username))
+    """Get a user's public profile."""
+    result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
