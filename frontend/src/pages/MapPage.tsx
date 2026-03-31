@@ -13,11 +13,11 @@ import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 L.Icon.Default.mergeOptions({ iconUrl, shadowUrl })
 
 const ENC_COLORS: Record<string, string> = {
-  WPA3: '#00ff88', WPA2: '#00d4ff', WPA: '#f59e0b', WEP: '#ef4444', Open: '#6b7280', Unknown: '#555570',
+  WPA3: '#44d97f', WPA2: '#3ea8f5', WPA: '#e8a23e', WEP: '#e8524a', Open: '#7a7486', Unknown: '#5a5466',
 }
 
-const BT_COLOR = '#6366f1'
-const CELL_COLOR = '#f59e0b'
+const BT_COLOR = '#7c6df0'
+const CELL_COLOR = '#e8a23e'
 
 function escapeHtml(str: string): string {
   const div = document.createElement('div')
@@ -37,7 +37,6 @@ export function MapPage() {
   const { viewMode, mineOnly, showBtLayer, showCellLayer, encryptionFilters, setViewMode } = useMapStore()
   const { isAuthenticated } = useAuthStore()
 
-  // Ref to hold the latest fetch function — assigned after useCallback below
   const fetchWifiRef = useRef<((map: L.Map, cluster: L.MarkerClusterGroup) => Promise<void>) | null>(null)
 
   // Initialize map (once)
@@ -72,7 +71,6 @@ export function MapPage() {
 
     mapRef.current = map
 
-    // Use ref so moveend always calls the latest version of fetchWifiData
     const loadData = () => fetchWifiRef.current?.(map, cluster)
     map.on('moveend', loadData)
     loadData()
@@ -83,13 +81,11 @@ export function MapPage() {
     }
   }, [])
 
-  // Reload on filter changes
   useEffect(() => {
     if (!mapRef.current || !clusterRef.current) return
     fetchWifiRef.current?.(mapRef.current, clusterRef.current)
   }, [mineOnly, encryptionFilters, viewMode])
 
-  // BT layer toggle
   useEffect(() => {
     if (!mapRef.current) return
     if (showBtLayer) {
@@ -100,7 +96,6 @@ export function MapPage() {
     }
   }, [showBtLayer])
 
-  // Cell layer toggle
   useEffect(() => {
     if (!mapRef.current) return
     if (showCellLayer) {
@@ -148,7 +143,7 @@ export function MapPage() {
             radius: 18,
             blur: 25,
             maxZoom: 17,
-            gradient: { 0.2: '#0a0a0f', 0.4: '#00d4ff44', 0.6: '#00d4ff', 0.8: '#00ff88', 1: '#fbbf24' },
+            gradient: { 0.2: '#15141c', 0.4: '#3ea8f544', 0.6: '#3ea8f5', 0.8: '#44d97f', 1: '#e8b830' },
           }).addTo(map)
         }
       } else {
@@ -162,18 +157,18 @@ export function MapPage() {
             radius: 5,
             color,
             fillColor: color,
-            fillOpacity: 0.7,
-            weight: 1,
+            fillOpacity: 0.75,
+            weight: 1.5,
           })
 
           marker.bindPopup(`
             <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8;">
-              <div style="font-weight: 700; color: ${color}; margin-bottom: 4px;">${escapeHtml(p.ssid || '<hidden>')}</div>
-              <span style="color: #8888a8;">BSSID</span> ${escapeHtml(String(p.bssid))}<br/>
-              <span style="color: #8888a8;">Encryption</span> <span style="color: ${color}; font-weight: 600;">${escapeHtml(enc)}</span><br/>
-              ${p.channel ? `<span style="color: #8888a8;">Channel</span> ${p.channel}<br/>` : ''}
-              ${p.rssi ? `<span style="color: #8888a8;">Signal</span> ${p.rssi} dBm<br/>` : ''}
-              <span style="color: #8888a8;">Coords</span> <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener" style="color: #00d4ff; text-decoration: none;">${lat.toFixed(5)}, ${lon.toFixed(5)}</a>
+              <div style="font-weight: 700; color: ${color}; margin-bottom: 4px; font-size: 13px;">${escapeHtml(p.ssid || '<hidden>')}</div>
+              <span style="color: #9e96b0;">BSSID</span> ${escapeHtml(String(p.bssid))}<br/>
+              <span style="color: #9e96b0;">Enc</span> <span style="color: ${color}; font-weight: 600;">${escapeHtml(enc)}</span><br/>
+              ${p.channel ? `<span style="color: #9e96b0;">Ch</span> ${p.channel}<br/>` : ''}
+              ${p.rssi ? `<span style="color: #9e96b0;">Sig</span> ${p.rssi} dBm<br/>` : ''}
+              <span style="color: #9e96b0;">GPS</span> <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener" style="color: #c9a84c; text-decoration: none;">${lat.toFixed(5)}, ${lon.toFixed(5)}</a>
             </div>
           `)
 
@@ -185,7 +180,6 @@ export function MapPage() {
     }
   }, [mineOnly, encryptionFilters, viewMode])
 
-  // Keep ref in sync so map event handlers use latest closure
   fetchWifiRef.current = fetchWifiData
 
   const fetchBtData = async (map: L.Map) => {
@@ -198,12 +192,12 @@ export function MapPage() {
       geojson.features?.forEach((f: any) => {
         const [lon, lat] = f.geometry.coordinates
         L.circleMarker([lat, lon], {
-          radius: 4, color: BT_COLOR, fillColor: BT_COLOR, fillOpacity: 0.7, weight: 1,
+          radius: 4, color: BT_COLOR, fillColor: BT_COLOR, fillOpacity: 0.75, weight: 1,
         }).bindPopup(`
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">
             <div style="font-weight: 700; color: ${BT_COLOR};">${escapeHtml(f.properties.name || '<unknown>')}</div>
-            <span style="color: #8888a8;">MAC</span> ${escapeHtml(String(f.properties.mac))}<br/>
-            <span style="color: #8888a8;">Type</span> ${escapeHtml(String(f.properties.device_type))}
+            <span style="color: #9e96b0;">MAC</span> ${escapeHtml(String(f.properties.mac))}<br/>
+            <span style="color: #9e96b0;">Type</span> ${escapeHtml(String(f.properties.device_type))}
           </div>
         `).addTo(btLayerRef.current!)
       })
@@ -220,12 +214,12 @@ export function MapPage() {
       geojson.features?.forEach((f: any) => {
         const [lon, lat] = f.geometry.coordinates
         L.circleMarker([lat, lon], {
-          radius: 6, color: CELL_COLOR, fillColor: CELL_COLOR, fillOpacity: 0.7, weight: 1,
+          radius: 6, color: CELL_COLOR, fillColor: CELL_COLOR, fillOpacity: 0.75, weight: 1,
         }).bindPopup(`
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">
             <div style="font-weight: 700; color: ${CELL_COLOR};">${f.properties.radio}</div>
-            <span style="color: #8888a8;">MCC/MNC</span> ${f.properties.mcc}/${f.properties.mnc}<br/>
-            <span style="color: #8888a8;">LAC/CID</span> ${f.properties.lac}/${f.properties.cid}
+            <span style="color: #9e96b0;">MCC/MNC</span> ${f.properties.mcc}/${f.properties.mnc}<br/>
+            <span style="color: #9e96b0;">LAC/CID</span> ${f.properties.lac}/${f.properties.cid}
           </div>
         `).addTo(cellLayerRef.current!)
       })
@@ -250,39 +244,46 @@ export function MapPage() {
     <div className="flex flex-1 overflow-hidden">
       <Sidebar />
       <div className="flex-1 relative">
-        {/* Map container */}
         <div ref={containerRef} className="absolute inset-0" />
 
-        {/* Map controls overlay */}
-        <div className="absolute top-3 right-3 z-[1000] flex gap-1 bg-panel/90 backdrop-blur-sm border border-border rounded-xl p-1">
-          <button
-            onClick={() => setViewMode('markers')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              viewMode === 'markers' ? 'bg-wifi/15 text-wifi' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            <MapPin size={13} /> Markers
-          </button>
-          <button
-            onClick={() => setViewMode('heatmap')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              viewMode === 'heatmap' ? 'bg-wifi/15 text-wifi' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            <Flame size={13} /> Heatmap
-          </button>
+        {/* Map view mode controls — top right */}
+        <div className="absolute top-2.5 right-2.5 z-[1000]">
+          <div className="flex gap-0.5 ornate-card rounded-lg p-0.5">
+            <button
+              onClick={() => setViewMode('markers')}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
+                viewMode === 'markers'
+                  ? 'bg-gold/12 text-gold'
+                  : 'text-secondary hover:text-primary'
+              }`}
+            >
+              <MapPin size={12} />
+              <span className="hidden sm:inline">Markers</span>
+            </button>
+            <button
+              onClick={() => setViewMode('heatmap')}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
+                viewMode === 'heatmap'
+                  ? 'bg-gold/12 text-gold'
+                  : 'text-secondary hover:text-primary'
+              }`}
+            >
+              <Flame size={12} />
+              <span className="hidden sm:inline">Heatmap</span>
+            </button>
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="absolute bottom-4 right-4 z-[1000] w-80 max-w-[calc(100%-2rem)]">
+        {/* Search — bottom right */}
+        <div className="absolute bottom-3 right-3 left-3 sm:left-auto z-[1000] sm:w-72">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search SSID or BSSID..."
-              className="w-full pl-9 pr-3 py-2.5 bg-panel/90 backdrop-blur-sm border border-border rounded-xl text-xs font-mono text-primary placeholder:text-muted focus:border-wifi focus:outline-none transition-colors"
+              className="w-full pl-8 pr-3 py-2 ornate-card rounded-lg text-[11px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none transition-colors"
             />
           </div>
         </div>

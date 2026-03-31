@@ -2,11 +2,21 @@ import { useGlobalStats, useChannelStats, useManufacturerStats, useCountryStats,
 import { formatNumber } from '@/lib/format'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Wifi, Bluetooth, Radio, Users, Upload, Shield, BarChart3, Globe, Cpu } from 'lucide-react'
-import { encryptionColor } from '@/lib/format'
 
 const ENC_ORDER = ['WPA3', 'WPA2', 'WPA', 'WEP', 'Open', 'Unknown']
-const ENC_COLORS_MAP: Record<string, string> = {
-  WPA3: '#00ff88', WPA2: '#00d4ff', WPA: '#f59e0b', WEP: '#ef4444', Open: '#6b7280', Unknown: '#555570',
+const ENC_COLORS: Record<string, string> = {
+  WPA3: '#44d97f', WPA2: '#3ea8f5', WPA: '#e8a23e', WEP: '#e8524a', Open: '#7a7486', Unknown: '#5a5466',
+}
+
+const tooltipStyle = {
+  contentStyle: {
+    background: '#15141c',
+    border: '1px solid #322f45',
+    borderRadius: '8px',
+    fontSize: '11px',
+    fontFamily: 'JetBrains Mono',
+    color: '#ece8e1',
+  },
 }
 
 export function StatsPage() {
@@ -20,67 +30,47 @@ export function StatsPage() {
     ? ENC_ORDER.map((enc) => ({
         name: enc,
         value: stats.by_encryption[enc] ?? 0,
-        color: ENC_COLORS_MAP[enc],
+        color: ENC_COLORS[enc],
       })).filter((d) => d.value > 0)
     : []
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-2">World Status</h1>
-          <p className="text-sm text-secondary">Global intelligence overview of the wardriving network</p>
+        <div className="text-center mb-6">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-gold mb-1">World Status</h1>
+          <p className="text-xs text-secondary">Global intelligence from all wardrivers combined</p>
         </div>
 
         {/* Big stats */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            <BigStat icon={<Wifi size={20} />} value={stats.total_wifi} label="WiFi Networks" color="text-wifi" />
-            <BigStat icon={<Bluetooth size={20} />} value={stats.total_bt} label="BT Devices" color="text-bt" />
-            <BigStat icon={<Radio size={20} />} value={stats.total_cell} label="Cell Towers" color="text-cell" />
-            <BigStat icon={<Users size={20} />} value={stats.total_users} label="Operators" color="text-epic" />
-            <BigStat icon={<Upload size={20} />} value={stats.total_uploads} label="Uploads" color="text-xp" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-6">
+            <BigStat icon={<Wifi size={18} />} value={stats.total_wifi} label="WiFi Networks" color="text-wifi" />
+            <BigStat icon={<Bluetooth size={18} />} value={stats.total_bt} label="BT Devices" color="text-bt" />
+            <BigStat icon={<Radio size={18} />} value={stats.total_cell} label="Cell Towers" color="text-cell" />
+            <BigStat icon={<Users size={18} />} value={stats.total_users} label="Operators" color="text-epic" />
+            <BigStat icon={<Upload size={18} />} value={stats.total_uploads} label="Uploads" color="text-xp" />
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Encryption distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {encData.length > 0 && (
-            <Card title="Encryption Distribution" icon={<Shield size={16} />}>
-              <div className="h-64">
+            <Card title="Encryption Distribution" icon={<Shield size={14} />}>
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={encData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {encData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
+                    <Pie data={encData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
+                      {encData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: 'var(--color-panel)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        fontFamily: 'JetBrains Mono',
-                      }}
-                      formatter={(value: number) => formatNumber(value)}
-                    />
+                    <Tooltip {...tooltipStyle} formatter={(value: number) => formatNumber(value)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex flex-wrap gap-3 justify-center mt-2">
+              <div className="flex flex-wrap gap-2 justify-center mt-1">
                 {encData.map((d) => (
-                  <div key={d.name} className="flex items-center gap-1.5 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
-                    <span className="text-secondary">{d.name}</span>
+                  <div key={d.name} className="flex items-center gap-1 text-[10px]">
+                    <span className="w-2 h-2 rounded-full" style={{ background: d.color }} />
+                    <span className="text-muted">{d.name}</span>
                     <span className="font-mono text-primary">{formatNumber(d.value)}</span>
                   </div>
                 ))}
@@ -88,83 +78,67 @@ export function StatsPage() {
             </Card>
           )}
 
-          {/* Channel distribution */}
           {channels && channels.length > 0 && (
-            <Card title="Channel Distribution" icon={<BarChart3 size={16} />}>
-              <div className="h-64">
+            <Card title="Channel Distribution" icon={<BarChart3 size={14} />}>
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={channels.slice(0, 20)}>
-                    <XAxis dataKey="channel" tick={{ fill: '#8888a8', fontSize: 10 }} />
-                    <YAxis tick={{ fill: '#8888a8', fontSize: 10 }} />
-                    <Tooltip
-                      contentStyle={{
-                        background: 'var(--color-panel)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        fontFamily: 'JetBrains Mono',
-                      }}
-                      formatter={(value: number) => formatNumber(value)}
-                    />
-                    <Bar dataKey="count" fill="#00d4ff" radius={[4, 4, 0, 0]} />
+                    <XAxis dataKey="channel" tick={{ fill: '#9e96b0', fontSize: 9 }} />
+                    <YAxis tick={{ fill: '#9e96b0', fontSize: 9 }} />
+                    <Tooltip {...tooltipStyle} formatter={(value: number) => formatNumber(value)} />
+                    <Bar dataKey="count" fill="#3ea8f5" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
           )}
 
-          {/* Top Manufacturers */}
           {manufacturers && manufacturers.length > 0 && (
-            <Card title="Top Manufacturers" icon={<Cpu size={16} />}>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+            <Card title="Top Manufacturers" icon={<Cpu size={14} />}>
+              <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {manufacturers.slice(0, 15).map((m, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className="font-mono text-[10px] text-muted w-5 text-right">{i + 1}</span>
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] text-muted w-4 text-right">{i + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="h-1.5 bg-void rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-wifi/40 rounded-full"
-                          style={{ width: `${(m.count / manufacturers[0].count) * 100}%` }}
-                        />
+                      <div className="h-1 bg-void/60 rounded-full overflow-hidden">
+                        <div className="h-full bg-wifi/30 rounded-full" style={{ width: `${(m.count / manufacturers[0].count) * 100}%` }} />
                       </div>
                     </div>
-                    <span className="text-xs text-primary truncate max-w-[140px]">{m.manufacturer}</span>
-                    <span className="font-mono text-[10px] text-secondary flex-shrink-0">{formatNumber(m.count)}</span>
+                    <span className="text-[10px] text-primary truncate max-w-[120px]">{m.manufacturer}</span>
+                    <span className="font-mono text-[9px] text-muted flex-shrink-0">{formatNumber(m.count)}</span>
                   </div>
                 ))}
               </div>
             </Card>
           )}
 
-          {/* Top SSIDs */}
           {topSSIDs && topSSIDs.length > 0 && (
-            <Card title="Most Common SSIDs" icon={<Wifi size={16} />}>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+            <Card title="Most Common SSIDs" icon={<Wifi size={14} />}>
+              <div className="space-y-0.5 max-h-64 overflow-y-auto">
                 {topSSIDs.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono text-[10px] text-muted w-5 text-right">{i + 1}</span>
-                      <span className="font-mono text-xs text-primary truncate">{s.ssid || '<hidden>'}</span>
+                  <div key={i} className="flex items-center justify-between py-1 border-b border-border/20 last:border-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-mono text-[9px] text-muted w-4 text-right">{i + 1}</span>
+                      <span className="font-mono text-[10px] text-primary truncate">{s.ssid || '<hidden>'}</span>
                     </div>
-                    <span className="font-mono text-[10px] text-secondary flex-shrink-0 ml-3">{formatNumber(s.count)}</span>
+                    <span className="font-mono text-[9px] text-muted flex-shrink-0 ml-2">{formatNumber(s.count)}</span>
                   </div>
                 ))}
               </div>
             </Card>
           )}
 
-          {/* Countries */}
           {countries && countries.length > 0 && (
-            <Card title="Countries (by MCC)" icon={<Globe size={16} />}>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+            <Card title="Countries (MCC)" icon={<Globe size={14} />}>
+              <div className="space-y-0.5 max-h-64 overflow-y-auto">
                 {countries.slice(0, 15).map((c, i) => (
-                  <div key={i} className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-muted w-5 text-right">{i + 1}</span>
-                      <span className="text-xs text-primary">{c.country}</span>
-                      <span className="font-mono text-[10px] text-muted">MCC {c.mcc}</span>
+                  <div key={i} className="flex items-center justify-between py-1 border-b border-border/20 last:border-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[9px] text-muted w-4 text-right">{i + 1}</span>
+                      <span className="text-[10px] text-primary">{c.country}</span>
+                      <span className="font-mono text-[8px] text-muted">({c.mcc})</span>
                     </div>
-                    <span className="font-mono text-[10px] text-secondary">{formatNumber(c.count)}</span>
+                    <span className="font-mono text-[9px] text-muted">{formatNumber(c.count)}</span>
                   </div>
                 ))}
               </div>
@@ -178,20 +152,21 @@ export function StatsPage() {
 
 function BigStat({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
   return (
-    <div className="bg-panel rounded-2xl border border-border p-5 text-center">
-      <div className={`${color} mb-2 flex justify-center`}>{icon}</div>
-      <div className={`font-mono font-bold text-2xl ${color}`}>{formatNumber(value)}</div>
-      <div className="text-[10px] text-secondary mt-1">{label}</div>
+    <div className="ornate-card rounded-xl p-3 sm:p-4 text-center">
+      <div className={`${color} mb-1 flex justify-center opacity-70`}>{icon}</div>
+      <div className={`font-mono font-bold text-lg sm:text-xl ${color}`}>{formatNumber(value)}</div>
+      <div className="text-[9px] text-muted mt-0.5">{label}</div>
     </div>
   )
 }
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-panel rounded-2xl border border-border p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-wifi">{icon}</span>
-        <h3 className="text-sm font-semibold text-primary">{title}</h3>
+    <div className="ornate-card rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-gold opacity-70">{icon}</span>
+        <h3 className="text-xs font-display font-bold text-gold">{title}</h3>
+        <div className="flex-1 h-px bg-gradient-to-r from-gold/10 to-transparent" />
       </div>
       {children}
     </div>

@@ -30,7 +30,7 @@ export function DataTable<T>({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`sticky top-0 bg-surface px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-secondary border-b border-border ${col.className ?? ''}`}
+                  className={`sticky top-0 bg-surface/95 backdrop-blur-sm px-3 py-2 text-left text-[9px] font-display font-bold uppercase tracking-[0.12em] text-gold/60 border-b border-border ${col.className ?? ''}`}
                 >
                   {col.label}
                 </th>
@@ -40,27 +40,24 @@ export function DataTable<T>({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-16 text-center text-secondary">
+                <td colSpan={columns.length} className="px-3 py-12 text-center text-secondary">
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-wifi/30 border-t-wifi rounded-full animate-spin" />
-                    <span className="text-sm">Loading...</span>
+                    <div className="w-4 h-4 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+                    <span className="text-[11px]">Loading...</span>
                   </div>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-16 text-center text-secondary text-sm">
+                <td colSpan={columns.length} className="px-3 py-12 text-center text-muted text-[11px]">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
               data.map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-border/50 hover:bg-surface/50 transition-colors"
-                >
+                <tr key={i} className="border-b border-border/30 hover:bg-surface/30 transition-colors">
                   {columns.map((col) => (
-                    <td key={col.key} className={`px-4 py-3 text-sm ${col.className ?? ''}`}>
+                    <td key={col.key} className={`px-3 py-2 ${col.className ?? ''}`}>
                       {col.render(row, i)}
                     </td>
                   ))}
@@ -71,25 +68,24 @@ export function DataTable<T>({
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages != null && totalPages > 1 && onPageChange && (
-        <div className="flex items-center justify-center gap-2 py-3 border-t border-border bg-panel">
+        <div className="flex items-center justify-center gap-2 py-2 border-t border-border bg-surface/50">
           <button
             onClick={() => onPageChange(Math.max(0, (page ?? 0) - 1))}
             disabled={!page}
-            className="p-1.5 rounded-lg text-secondary hover:text-primary disabled:opacity-30 transition-colors"
+            className="p-1 rounded text-secondary hover:text-primary disabled:opacity-20 transition-colors"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={14} />
           </button>
-          <span className="text-xs font-mono text-secondary">
-            Page {(page ?? 0) + 1} of {totalPages}
+          <span className="text-[10px] font-mono text-muted">
+            {(page ?? 0) + 1} / {totalPages}
           </span>
           <button
             onClick={() => onPageChange((page ?? 0) + 1)}
             disabled={(page ?? 0) >= totalPages - 1}
-            className="p-1.5 rounded-lg text-secondary hover:text-primary disabled:opacity-30 transition-colors"
+            className="p-1 rounded text-secondary hover:text-primary disabled:opacity-20 transition-colors"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={14} />
           </button>
         </div>
       )}

@@ -3,39 +3,47 @@
 /* ── Fonts ── */
 @font-face { font-family: 'Cinzel'; font-display: swap; }
 
-/* ── Theme tokens ── */
+/* ── Theme: D&D Dungeon meets Cyberpunk Terminal ── */
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --font-display: 'Cinzel', serif;
 
-  --color-void: #0a0a0f;
-  --color-panel: #12121a;
-  --color-surface: #1a1a28;
-  --color-surface-hover: #222236;
-  --color-border: #2a2a3e;
-  --color-border-glow: #3d3d5c;
+  /* Warm dark backgrounds — like parchment in shadow */
+  --color-void: #0c0b10;
+  --color-panel: #15141c;
+  --color-surface: #1e1c28;
+  --color-surface-hover: #282636;
+  --color-border: #322f45;
+  --color-border-glow: #4a4568;
 
-  --color-primary: #e2e2f0;
-  --color-secondary: #8888a8;
-  --color-muted: #555570;
+  /* Text — warm off-white */
+  --color-primary: #ece8e1;
+  --color-secondary: #9e96b0;
+  --color-muted: #655f78;
 
-  --color-xp: #00ff88;
-  --color-wifi: #00d4ff;
-  --color-bt: #6366f1;
-  --color-cell: #f59e0b;
-  --color-danger: #ef4444;
-  --color-rare: #a855f7;
-  --color-legendary: #fbbf24;
-  --color-mythic: #ec4899;
-  --color-epic: #a855f7;
+  /* Core accents */
+  --color-xp: #44d97f;
+  --color-wifi: #3ea8f5;
+  --color-bt: #7c6df0;
+  --color-cell: #e8a23e;
+  --color-danger: #e8524a;
+  --color-rare: #9366e8;
+  --color-legendary: #e8b830;
+  --color-mythic: #d94089;
+  --color-epic: #9366e8;
 
-  --color-enc-wpa3: #00ff88;
-  --color-enc-wpa2: #00d4ff;
-  --color-enc-wpa: #f59e0b;
-  --color-enc-wep: #ef4444;
-  --color-enc-open: #6b7280;
-  --color-enc-unknown: #555570;
+  /* Encryption colors */
+  --color-enc-wpa3: #44d97f;
+  --color-enc-wpa2: #3ea8f5;
+  --color-enc-wpa: #e8a23e;
+  --color-enc-wep: #e8524a;
+  --color-enc-open: #7a7486;
+  --color-enc-unknown: #5a5466;
+
+  /* D&D accent — warm gold for headers/ornaments */
+  --color-gold: #c9a84c;
+  --color-gold-dim: #8b7535;
 }
 
 /* ── Base ── */
@@ -53,50 +61,77 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
+/* ── Scrollbar — stylized like old wood ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-void); }
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
-  border-radius: 3px;
+  border-radius: 4px;
+  border: 1px solid var(--color-void);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-border-glow); }
 
-/* ── Leaflet overrides ── */
-.leaflet-container { background: #0a0a0f !important; }
+/* ── Leaflet Map — visible and clear ── */
+.leaflet-container {
+  background: #1a1926 !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Map tiles: keep readable, just slightly muted to match dark theme */
+.leaflet-tile-pane {
+  filter: brightness(0.88) contrast(1.05) saturate(0.6) sepia(0.08);
+}
 
 .leaflet-popup-content-wrapper {
   background: var(--color-panel) !important;
   color: var(--color-primary) !important;
-  border-radius: 12px !important;
-  border: 1px solid var(--color-border) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--color-gold-dim) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 1px var(--color-gold-dim) !important;
 }
 
 .leaflet-popup-tip { background: var(--color-panel) !important; }
 
 .leaflet-popup-content {
   font-family: var(--font-mono) !important;
-  font-size: 0.78rem !important;
-  line-height: 1.6 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.7 !important;
   margin: 12px 16px !important;
 }
 
+/* Clusters — warm glow */
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-  background: rgba(0, 212, 255, 0.12) !important;
+  background: rgba(62, 168, 245, 0.15) !important;
 }
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-  background: rgba(0, 212, 255, 0.7) !important;
+  background: rgba(62, 168, 245, 0.75) !important;
   color: #fff !important;
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 12px;
 }
 
-.leaflet-tile-pane { filter: brightness(0.7) contrast(1.1) saturate(0.3); }
+/* Leaflet controls — match theme */
+.leaflet-control-zoom a {
+  background: var(--color-panel) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-border) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--color-surface) !important;
+}
+.leaflet-control-attribution {
+  background: rgba(12, 11, 16, 0.7) !important;
+  color: var(--color-muted) !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--color-secondary) !important;
+}
 
 /* ── RPG Animations ── */
 @keyframes xp-shimmer {
@@ -129,19 +164,9 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes scan-line {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
 @keyframes text-glow {
   0%, 100% { text-shadow: 0 0 4px currentColor; }
-  50% { text-shadow: 0 0 16px currentColor, 0 0 32px currentColor; }
-}
-
-@keyframes particle-rise {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-40px) scale(0); opacity: 0; }
+  50% { text-shadow: 0 0 12px currentColor, 0 0 24px currentColor; }
 }
 
 .animate-xp-shimmer {
@@ -156,13 +181,37 @@ body {
 .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
 .animate-text-glow { animation: text-glow 2s ease-in-out infinite; }
 
-/* ── Tier glow effects ── */
-.glow-common { box-shadow: 0 0 4px rgba(107, 114, 128, 0.3); }
-.glow-uncommon { box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
-.glow-rare { box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
-.glow-epic { box-shadow: 0 0 16px rgba(168, 85, 247, 0.5), 0 0 32px rgba(168, 85, 247, 0.2); }
-.glow-legendary { box-shadow: 0 0 20px rgba(251, 191, 36, 0.5), 0 0 40px rgba(251, 191, 36, 0.2); }
-.glow-mythic { box-shadow: 0 0 24px rgba(236, 72, 153, 0.5), 0 0 48px rgba(236, 72, 153, 0.25); }
+/* ── Tier glow effects — warm fantasy tones ── */
+.glow-common { box-shadow: 0 0 6px rgba(122, 116, 134, 0.3); }
+.glow-uncommon { box-shadow: 0 0 10px rgba(68, 217, 127, 0.35); }
+.glow-rare { box-shadow: 0 0 14px rgba(62, 168, 245, 0.45); }
+.glow-epic { box-shadow: 0 0 18px rgba(147, 102, 232, 0.5), 0 0 36px rgba(147, 102, 232, 0.15); }
+.glow-legendary { box-shadow: 0 0 22px rgba(232, 184, 48, 0.5), 0 0 44px rgba(232, 184, 48, 0.15); }
+.glow-mythic { box-shadow: 0 0 28px rgba(217, 64, 137, 0.5), 0 0 56px rgba(217, 64, 137, 0.2); }
+
+/* ── D&D-style ornamental border ── */
+.ornate-border {
+  border: 1px solid var(--color-border);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 168, 76, 0.08),
+    0 1px 3px rgba(0,0,0,0.3);
+}
+
+.ornate-card {
+  background:
+    linear-gradient(135deg, rgba(201,168,76,0.03) 0%, transparent 50%),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow:
+    inset 0 1px 0 rgba(201,168,76,0.06),
+    0 2px 8px rgba(0,0,0,0.3);
+}
+
+.ornate-header {
+  background:
+    linear-gradient(90deg, transparent, rgba(201,168,76,0.06), transparent);
+  border-bottom: 1px solid var(--color-border);
+}
 
 /* ── Utility ── */
 .font-display { font-family: var(--font-display); }
@@ -170,6 +219,7 @@ body {
 .text-wifi { color: var(--color-wifi); }
 .text-bt { color: var(--color-bt); }
 .text-cell { color: var(--color-cell); }
+.text-gold { color: var(--color-gold); }
 .bg-void { background: var(--color-void); }
 .bg-panel { background: var(--color-panel); }
 .bg-surface { background: var(--color-surface); }

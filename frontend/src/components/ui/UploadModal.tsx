@@ -21,8 +21,7 @@ export function UploadModal() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragover(false)
-    const dropped = Array.from(e.dataTransfer.files)
-    setFiles((prev) => [...prev, ...dropped])
+    setFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files)])
   }, [])
 
   const handleUpload = async () => {
@@ -30,9 +29,7 @@ export function UploadModal() {
     try {
       const data = await upload(files)
       setResults(data)
-      if (data.length > 0) {
-        setTrackingId(data[0].transaction_id)
-      }
+      if (data.length > 0) setTrackingId(data[0].transaction_id)
     } catch {
       addToast({ type: 'error', title: 'Upload failed', message: 'Something went wrong' })
     }
@@ -50,84 +47,61 @@ export function UploadModal() {
   const isProcessing = trackingId && !isDone && !isError
 
   return (
-    <Modal open={uploadModalOpen} onClose={handleClose} title="Upload Captures">
+    <Modal open={uploadModalOpen} onClose={handleClose} title="Submit Captures">
       {!results.length ? (
         <>
-          {/* Drop zone */}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragover(true) }}
             onDragLeave={() => setDragover(false)}
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${
-              dragover
-                ? 'border-wifi bg-wifi/5'
-                : 'border-border hover:border-secondary'
+            className={`border border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+              dragover ? 'border-gold bg-gold/5' : 'border-border hover:border-gold/40'
             }`}
           >
-            <FileUp size={36} className="mx-auto mb-3 text-secondary" />
-            <p className="text-sm text-secondary mb-2">
-              Drag & drop your wardriving captures here
-            </p>
-            <p className="text-xs text-muted mb-3">
-              WiGLE CSV, Kismet, KML, NetStumbler, and more
-            </p>
-            <span className="inline-block px-4 py-2 rounded-lg bg-wifi/15 text-wifi text-xs font-semibold border border-wifi/30">
+            <FileUp size={28} className="mx-auto mb-2 text-muted" />
+            <p className="text-xs text-secondary mb-1">Drag & drop captures here</p>
+            <p className="text-[9px] text-muted mb-2">WiGLE CSV, Kismet, KML, NetStumbler, and more</p>
+            <span className="inline-block px-3 py-1.5 rounded-md bg-gold/10 text-gold text-[10px] font-semibold border border-gold/25">
               Browse Files
             </span>
-            <input
-              ref={inputRef}
-              type="file"
-              multiple
-              accept={ACCEPTED}
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-              className="hidden"
-            />
+            <input ref={inputRef} type="file" multiple accept={ACCEPTED} onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="hidden" />
           </div>
 
-          {/* File list */}
           {files.length > 0 && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-3 space-y-1">
               {files.map((f, i) => (
-                <div key={i} className="flex items-center justify-between bg-surface rounded-lg px-3 py-2 border border-border">
-                  <span className="text-xs font-mono text-primary truncate">{f.name}</span>
-                  <span className="text-[10px] text-secondary flex-shrink-0">
-                    {(f.size / 1024).toFixed(1)} KB
-                  </span>
+                <div key={i} className="flex items-center justify-between bg-void/30 rounded-md px-2.5 py-1.5 border border-border/50">
+                  <span className="text-[10px] font-mono text-primary truncate">{f.name}</span>
+                  <span className="text-[9px] text-muted flex-shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Upload button */}
           <button
             onClick={handleUpload}
             disabled={files.length === 0 || uploading}
-            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-xp/15 text-xp font-semibold border border-xp/30 hover:bg-xp/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="mt-3 w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-xp/10 text-xp text-xs font-bold border border-xp/25 hover:bg-xp/15 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
           >
-            {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
             {uploading ? 'Uploading...' : `Upload ${files.length} file${files.length !== 1 ? 's' : ''}`}
           </button>
         </>
       ) : (
         <>
-          {/* Processing status */}
-          <div className="text-center py-4">
+          <div className="text-center py-3">
             {isProcessing && (
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 size={36} className="text-wifi animate-spin" />
-                <div className="text-sm font-semibold text-primary">Processing your captures...</div>
-                <div className="text-xs text-secondary capitalize">{sseStatus?.status ?? 'Queued'}</div>
-                {/* Progress bar */}
-                <div className="w-full h-2 bg-void rounded-full overflow-hidden">
-                  <div className="h-full bg-wifi/70 rounded-full transition-all duration-500 animate-xp-shimmer"
+              <div className="flex flex-col items-center gap-2.5">
+                <Loader2 size={28} className="text-gold animate-spin" />
+                <div className="text-xs font-semibold text-primary">Processing captures...</div>
+                <div className="text-[10px] text-secondary capitalize">{sseStatus?.status ?? 'Queued'}</div>
+                <div className="w-full h-1.5 bg-void/60 rounded-full overflow-hidden border border-border/50">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
                     style={{
-                      width: sseStatus?.status === 'parsing' ? '30%'
-                        : sseStatus?.status === 'trilaterating' ? '60%'
-                        : sseStatus?.status === 'indexing' ? '85%'
-                        : '15%',
-                      backgroundImage: 'linear-gradient(90deg, rgba(0,212,255,0.5), #00d4ff, rgba(0,212,255,0.5))',
-                      backgroundSize: '200% 100%',
+                      width: sseStatus?.status === 'parsing' ? '30%' : sseStatus?.status === 'trilaterating' ? '60%' : sseStatus?.status === 'indexing' ? '85%' : '15%',
+                      background: 'linear-gradient(90deg, var(--color-gold-dim), var(--color-gold))',
                     }}
                   />
                 </div>
@@ -135,23 +109,21 @@ export function UploadModal() {
             )}
 
             {isDone && sseStatus && (
-              <div className="flex flex-col items-center gap-3">
-                <CheckCircle size={36} className="text-xp" />
-                <div className="text-sm font-semibold text-xp">Quest Complete!</div>
-
-                <div className="w-full bg-surface rounded-xl p-4 border border-border">
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex flex-col items-center gap-2.5">
+                <CheckCircle size={28} className="text-xp" />
+                <div className="text-xs font-display font-bold text-xp">Quest Complete!</div>
+                <div className="w-full ornate-card rounded-lg p-3">
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px]">
                     <ResultRow label="New Networks" value={sseStatus.new_networks} color="text-xp" />
                     <ResultRow label="Updated" value={sseStatus.updated_networks} color="text-wifi" />
-                    <ResultRow label="Skipped" value={sseStatus.skipped_networks} color="text-secondary" />
+                    <ResultRow label="Skipped" value={sseStatus.skipped_networks} color="text-muted" />
                     <ResultRow label="WiFi" value={sseStatus.wifi_count} color="text-wifi" />
                     <ResultRow label="Bluetooth" value={sseStatus.bt_count} color="text-bt" />
                     <ResultRow label="Cell Towers" value={sseStatus.cell_count} color="text-cell" />
                   </div>
-
                   {sseStatus.xp_earned > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border text-center">
-                      <span className="font-mono font-bold text-lg text-xp animate-text-glow">
+                    <div className="mt-2.5 pt-2.5 border-t border-border/50 text-center">
+                      <span className="font-mono font-bold text-base text-xp animate-text-glow">
                         +{formatNumber(sseStatus.xp_earned)} XP
                       </span>
                     </div>
@@ -161,17 +133,17 @@ export function UploadModal() {
             )}
 
             {isError && (
-              <div className="flex flex-col items-center gap-3">
-                <XCircle size={36} className="text-danger" />
-                <div className="text-sm font-semibold text-danger">Processing Failed</div>
-                <div className="text-xs text-secondary">{sseStatus?.status_message ?? 'Unknown error'}</div>
+              <div className="flex flex-col items-center gap-2">
+                <XCircle size={28} className="text-danger" />
+                <div className="text-xs font-semibold text-danger">Processing Failed</div>
+                <div className="text-[10px] text-secondary">{sseStatus?.status_message ?? 'Unknown error'}</div>
               </div>
             )}
           </div>
 
           <button
             onClick={handleClose}
-            className="mt-4 w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-secondary border border-border hover:text-primary hover:border-secondary transition-colors"
+            className="mt-3 w-full px-4 py-2 rounded-lg text-xs font-semibold text-secondary border border-border hover:text-primary hover:border-gold/30 transition-colors"
           >
             Close
           </button>
@@ -183,7 +155,7 @@ export function UploadModal() {
 
 function ResultRow({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="flex justify-between py-1">
+    <div className="flex justify-between py-0.5">
       <span className="text-secondary">{label}</span>
       <span className={`font-mono font-semibold ${color}`}>{formatNumber(value)}</span>
     </div>

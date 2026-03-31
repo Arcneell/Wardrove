@@ -20,46 +20,45 @@ export function LoginModal() {
   }
 
   return (
-    <Modal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} title="Join the Hunt">
-      <div className="text-center mb-6">
-        <div className="font-display text-2xl font-bold text-primary mb-2">Welcome, Scanner</div>
-        <p className="text-sm text-secondary">
-          Sign in to start your wardriving journey. Upload captures, earn XP, unlock badges, and climb the leaderboard.
+    <Modal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} title="Join the Guild">
+      <div className="text-center mb-5">
+        <div className="font-display text-xl font-bold text-primary mb-2">Welcome, Wanderer</div>
+        <p className="text-xs text-secondary leading-relaxed">
+          Sign in to begin your quest. Upload captures, earn XP, unlock badges, and rise through the ranks.
         </p>
       </div>
 
-      {/* ToS acceptance */}
-      <label className="flex items-start gap-3 mb-5 cursor-pointer group">
+      <label className="flex items-start gap-2.5 mb-5 cursor-pointer group">
         <input
           type="checkbox"
           checked={tosAccepted}
           onChange={(e) => setTosAccepted(e.target.checked)}
-          className="mt-0.5 accent-wifi"
+          className="mt-0.5 accent-gold"
         />
-        <span className="text-xs text-secondary group-hover:text-primary transition-colors leading-relaxed">
-          I have read and agree to the{' '}
+        <span className="text-[11px] text-secondary group-hover:text-primary transition-colors leading-relaxed">
+          I accept the{' '}
           <Link
             to="/terms"
             onClick={() => setLoginModalOpen(false)}
-            className="text-wifi hover:underline"
+            className="text-gold hover:underline"
           >
             Terms of Service
           </Link>
-          . I understand that data I upload will be publicly visible and aggregated with other users' data.
+          . I understand that uploaded data will be publicly visible and aggregated.
         </span>
       </label>
 
       <button
         onClick={loginGithub}
         disabled={!tosAccepted}
-        className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-[#24292e] hover:bg-[#2f363d] text-white font-semibold transition-colors border border-[#3d4148] disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-lg bg-[#24292e] hover:bg-[#2f363d] text-white text-sm font-semibold transition-colors border border-[#3d4148] disabled:opacity-25 disabled:cursor-not-allowed"
       >
-        <Github size={20} />
+        <Github size={18} />
         Continue with GitHub
       </button>
 
-      <p className="text-[10px] text-muted text-center mt-4">
-        Your GitHub profile will be used to create your player identity.
+      <p className="text-[9px] text-muted text-center mt-4">
+        Your GitHub profile will be used to forge your player identity.
       </p>
     </Modal>
   )

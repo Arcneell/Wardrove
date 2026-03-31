@@ -10,16 +10,16 @@ export interface TierStyle {
 }
 
 const TIER_STYLES: Record<number, TierStyle> = {
-  1: { name: 'common',    label: 'Common',    color: '#6b7280', bgColor: 'rgba(107,114,128,0.1)', borderColor: 'rgba(107,114,128,0.3)', glowClass: 'glow-common' },
-  2: { name: 'uncommon',  label: 'Uncommon',  color: '#22c55e', bgColor: 'rgba(34,197,94,0.1)',   borderColor: 'rgba(34,197,94,0.3)',   glowClass: 'glow-uncommon' },
-  3: { name: 'rare',      label: 'Rare',      color: '#3b82f6', bgColor: 'rgba(59,130,246,0.1)',  borderColor: 'rgba(59,130,246,0.3)',  glowClass: 'glow-rare' },
-  4: { name: 'epic',      label: 'Epic',      color: '#a855f7', bgColor: 'rgba(168,85,247,0.1)', borderColor: 'rgba(168,85,247,0.3)', glowClass: 'glow-epic' },
-  5: { name: 'legendary', label: 'Legendary', color: '#fbbf24', bgColor: 'rgba(251,191,36,0.1)', borderColor: 'rgba(251,191,36,0.3)', glowClass: 'glow-legendary' },
-  6: { name: 'mythic',    label: 'Mythic',    color: '#ec4899', bgColor: 'rgba(236,72,153,0.1)', borderColor: 'rgba(236,72,153,0.3)', glowClass: 'glow-mythic' },
-  7: { name: 'mythic',    label: 'Mythic II',  color: '#ec4899', bgColor: 'rgba(236,72,153,0.15)', borderColor: 'rgba(236,72,153,0.4)', glowClass: 'glow-mythic' },
-  8: { name: 'mythic',    label: 'Mythic III', color: '#f43f5e', bgColor: 'rgba(244,63,94,0.15)',  borderColor: 'rgba(244,63,94,0.4)',  glowClass: 'glow-mythic' },
-  9: { name: 'mythic',    label: 'Mythic IV',  color: '#f43f5e', bgColor: 'rgba(244,63,94,0.2)',   borderColor: 'rgba(244,63,94,0.5)',  glowClass: 'glow-mythic' },
-  10:{ name: 'mythic',    label: 'Mythic V',   color: '#ff1744', bgColor: 'rgba(255,23,68,0.2)',   borderColor: 'rgba(255,23,68,0.5)',  glowClass: 'glow-mythic' },
+  1:  { name: 'common',    label: 'Common',     color: '#7a7486', bgColor: 'rgba(122,116,134,0.08)', borderColor: 'rgba(122,116,134,0.25)', glowClass: 'glow-common' },
+  2:  { name: 'uncommon',  label: 'Uncommon',   color: '#44d97f', bgColor: 'rgba(68,217,127,0.08)',  borderColor: 'rgba(68,217,127,0.25)',  glowClass: 'glow-uncommon' },
+  3:  { name: 'rare',      label: 'Rare',       color: '#3ea8f5', bgColor: 'rgba(62,168,245,0.08)',  borderColor: 'rgba(62,168,245,0.25)',  glowClass: 'glow-rare' },
+  4:  { name: 'epic',      label: 'Epic',       color: '#9366e8', bgColor: 'rgba(147,102,232,0.08)', borderColor: 'rgba(147,102,232,0.25)', glowClass: 'glow-epic' },
+  5:  { name: 'legendary', label: 'Legendary',  color: '#e8b830', bgColor: 'rgba(232,184,48,0.08)',  borderColor: 'rgba(232,184,48,0.25)',  glowClass: 'glow-legendary' },
+  6:  { name: 'mythic',    label: 'Mythic',     color: '#d94089', bgColor: 'rgba(217,64,137,0.08)',  borderColor: 'rgba(217,64,137,0.25)',  glowClass: 'glow-mythic' },
+  7:  { name: 'mythic',    label: 'Mythic II',  color: '#d94089', bgColor: 'rgba(217,64,137,0.12)',  borderColor: 'rgba(217,64,137,0.35)',  glowClass: 'glow-mythic' },
+  8:  { name: 'mythic',    label: 'Mythic III', color: '#e83050', bgColor: 'rgba(232,48,80,0.12)',   borderColor: 'rgba(232,48,80,0.35)',   glowClass: 'glow-mythic' },
+  9:  { name: 'mythic',    label: 'Mythic IV',  color: '#e83050', bgColor: 'rgba(232,48,80,0.15)',   borderColor: 'rgba(232,48,80,0.4)',    glowClass: 'glow-mythic' },
+  10: { name: 'mythic',    label: 'Mythic V',   color: '#ff2040', bgColor: 'rgba(255,32,64,0.15)',   borderColor: 'rgba(255,32,64,0.4)',    glowClass: 'glow-mythic' },
 }
 
 export function getTierStyle(tier: number): TierStyle {
