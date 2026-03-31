@@ -5,10 +5,10 @@ import { setProfileUser } from './profile.js';
 const PAGE_SIZE = 50;
 let currentOffset = 0;
 
-const RANK_ICONS = {
-    1: '\ud83e\udd47',
-    2: '\ud83e\udd48',
-    3: '\ud83e\udd49',
+const RANK_MEDALS = {
+    1: '<svg class="lb-medal" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M8 14l-2 8 6-3 6 3-2-8"/><text x="12" y="11" text-anchor="middle" fill="#d4af37" stroke="none" font-size="8" font-weight="bold" font-family="monospace">1</text></svg>',
+    2: '<svg class="lb-medal" viewBox="0 0 24 24" fill="none" stroke="#a0a0a0" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M8 14l-2 8 6-3 6 3-2-8"/><text x="12" y="11" text-anchor="middle" fill="#a0a0a0" stroke="none" font-size="8" font-weight="bold" font-family="monospace">2</text></svg>',
+    3: '<svg class="lb-medal" viewBox="0 0 24 24" fill="none" stroke="#cd7f32" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M8 14l-2 8 6-3 6 3-2-8"/><text x="12" y="11" text-anchor="middle" fill="#cd7f32" stroke="none" font-size="8" font-weight="bold" font-family="monospace">3</text></svg>',
 };
 
 export function initLeaderboard() {
@@ -30,7 +30,6 @@ function viewProfile(userId) {
     navigate('#profile');
 }
 
-// Expose to window for onclick handlers
 window._viewProfile = viewProfile;
 
 export async function loadLeaderboard() {
@@ -41,7 +40,7 @@ export async function loadLeaderboard() {
         const tbody = $('lbTableBody');
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="bt-empty">No users yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="bt-empty">No players yet</td></tr>';
             return;
         }
 
@@ -49,11 +48,11 @@ export async function loadLeaderboard() {
             const avatar = u.avatar_url
                 ? `<img src="${u.avatar_url}" class="lb-avatar">`
                 : `<div class="lb-avatar lb-avatar-placeholder">${escapeHtml((u.username || '?')[0].toUpperCase())}</div>`;
-            const topClass = u.rank === 1 ? 'lb-top1' : (u.rank === 2 ? 'lb-top2' : (u.rank === 3 ? 'lb-top3' : ''));
-            const rankIcon = RANK_ICONS[u.rank] || `#${u.rank}`;
+            const topClass = u.rank <= 3 ? `lb-top${u.rank}` : '';
+            const rankDisplay = RANK_MEDALS[u.rank] || `<span class="lb-rank-num">#${u.rank}</span>`;
             const rankTitle = u.rank_title || '';
             return `<tr class="${topClass} lb-row-clickable" onclick="window._viewProfile(${u.user_id})">
-                <td class="lb-rank-cell"><span class="lb-rank-icon">${rankIcon}</span></td>
+                <td class="lb-rank-cell">${rankDisplay}</td>
                 <td class="lb-user-cell">
                     ${avatar}
                     <div class="lb-user-info">
@@ -61,13 +60,14 @@ export async function loadLeaderboard() {
                         <span class="lb-rank-title">${escapeHtml(rankTitle)}</span>
                     </div>
                 </td>
-                <td><span class="lb-level-badge">Lvl ${u.level}</span></td>
+                <td><span class="lb-level-badge">Lv.${u.level}</span></td>
                 <td class="lb-xp">${(u.xp || 0).toLocaleString()}</td>
                 <td>${(u.wifi_discovered || 0).toLocaleString()}</td>
                 <td>${(u.bt_discovered || 0).toLocaleString()}</td>
                 <td>${(u.cell_discovered || 0).toLocaleString()}</td>
             </tr>`;
         }).join('');
+
         const pageInfo = $('lbPageInfo');
         const prevBtn = $('lbPrev');
         const nextBtn = $('lbNext');

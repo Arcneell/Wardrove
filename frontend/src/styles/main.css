@@ -1162,495 +1162,273 @@ body {
    RPG PROFILE & BADGES SYSTEM
    ============================================ */
 
-.rpg-page {
-    padding: 24px !important;
-}
+.rpg-page { padding: 24px !important; }
+.rpg-empty { text-align: center; color: var(--text-secondary); padding: 60px 20px; font-size: 0.9rem; }
 
-/* Profile Hero Section */
+/* --- Hero Section --- */
 .rpg-profile-hero {
-    background: linear-gradient(135deg, #0a1628 0%, #1a1a2e 50%, #0d2137 100%);
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(13, 147, 115, 0.2);
+    background: linear-gradient(145deg, #080e1a 0%, #101828 40%, #0c1a2a 100%);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(13, 147, 115, 0.15);
     position: relative;
     overflow: hidden;
 }
-
 .rpg-profile-hero::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at 20% 50%, rgba(13, 147, 115, 0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+    inset: 0;
+    background: radial-gradient(ellipse at 15% 50%, rgba(13,147,115,0.06) 0%, transparent 55%);
     pointer-events: none;
 }
-
 .rpg-profile-avatar-section {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 22px;
     position: relative;
     z-index: 1;
 }
 
-/* Level Ring */
-.rpg-level-ring {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    flex-shrink: 0;
-}
-
-.rpg-level-svg {
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 0 6px rgba(13, 147, 115, 0.4));
-}
-
-.rpg-level-progress {
-    transition: stroke-dasharray 1.5s ease-out;
-}
-
+/* --- Level Ring --- */
+.rpg-level-ring { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+.rpg-level-svg { width: 100%; height: 100%; }
+.rpg-level-progress { transition: stroke-dasharray 1.2s ease-out; }
 .rpg-level-number {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 0 12px rgba(13, 147, 115, 0.6);
+    font-size: 1.7rem; font-weight: 700; color: #e2e8f0;
+    letter-spacing: -1px;
 }
-
 .rpg-level-badge {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    background: var(--accent);
-    color: #fff;
+    position: absolute; bottom: -2px; right: -2px;
+    background: var(--accent); color: #fff;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 10px;
-    border: 2px solid #0a1628;
-    box-shadow: 0 0 8px rgba(13, 147, 115, 0.5);
+    font-size: 0.65rem; font-weight: 700;
+    padding: 1px 7px; border-radius: 8px;
+    border: 2px solid #080e1a;
 }
-
 .rpg-profile-avatar {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 2px solid rgba(13, 147, 115, 0.4);
+    width: 58px; height: 58px; border-radius: 50%;
+    border: 2px solid rgba(13,147,115,0.3);
 }
-
 .rpg-profile-avatar-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(13, 147, 115, 0.15);
-    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(13,147,115,0.1); color: var(--accent);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-size: 1.3rem; font-weight: 700;
 }
 
-.rpg-profile-info {
-    flex: 1;
-}
-
+/* --- Profile Info --- */
+.rpg-profile-info { flex: 1; }
 .rpg-profile-name {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 4px;
+    font-size: 1.4rem; font-weight: 700; color: #e2e8f0;
+    margin-bottom: 2px; letter-spacing: -0.3px;
 }
-
 .rpg-profile-rank {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--accent);
-    margin-bottom: 4px;
-    text-shadow: 0 0 8px rgba(13, 147, 115, 0.3);
+    font-size: 0.82rem; font-weight: 600; color: var(--accent);
+    letter-spacing: 0.5px; text-transform: uppercase;
 }
-
-.rpg-profile-global-rank {
-    font-size: 0.78rem;
-    color: #6b7280;
-}
-
-/* XP Bar */
-.rpg-xp-section {
-    margin-top: 20px;
-    position: relative;
-    z-index: 1;
-}
-
-.rpg-xp-bar-wrap {
-    width: 100%;
-}
-
-.rpg-xp-bar {
-    width: 100%;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 5px;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.rpg-xp-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #0d9373, #10b981, #34d399);
-    border-radius: 5px;
-    transition: width 1.5s ease-out;
-    position: relative;
-}
-
-.rpg-xp-bar-glow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.4), transparent);
-    border-radius: 5px;
-    animation: xp-shimmer 2s ease-in-out infinite;
-}
-
-@keyframes xp-shimmer {
-    0%, 100% { opacity: 0; }
-    50% { opacity: 1; }
-}
-
-.rpg-xp-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
+.rpg-profile-meta {
+    font-size: 0.72rem; color: #4b5563; margin-top: 4px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: #6b7280;
 }
 
-/* Stats Grid */
+/* --- XP Bar --- */
+.rpg-xp-section { margin-top: 18px; position: relative; z-index: 1; }
+.rpg-xp-bar {
+    width: 100%; height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px; overflow: hidden;
+}
+.rpg-xp-bar-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), #10b981);
+    transition: width 1.2s ease-out;
+    box-shadow: 0 0 8px rgba(13,147,115,0.3);
+}
+.rpg-xp-labels {
+    display: flex; justify-content: space-between;
+    margin-top: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; color: #4b5563;
+}
+
+/* --- Stats Grid --- */
 .rpg-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px; margin-bottom: 16px;
 }
-
 .rpg-stat-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 10px; padding: 14px 10px;
     text-align: center;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s;
 }
-
-.rpg-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
+.rpg-stat-card:hover { border-color: rgba(13,147,115,0.3); }
 .rpg-stat-icon {
-    font-size: 1.6rem;
-    margin-bottom: 6px;
+    width: 22px; height: 22px; margin: 0 auto 6px;
+    color: var(--accent); display: block;
 }
-
+.rpg-stat-icon svg { width: 100%; height: 100%; }
 .rpg-stat-value {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-size: 1.3rem; font-weight: 700; color: var(--text-primary);
 }
-
 .rpg-stat-label {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    margin-top: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 0.68rem; color: var(--text-secondary);
+    margin-top: 2px; text-transform: uppercase;
+    letter-spacing: 0.5px; font-weight: 500;
 }
 
-/* Badges Section */
+/* --- Badges Section --- */
 .rpg-badges-section {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow);
+    border-radius: 10px; padding: 18px;
 }
-
 .rpg-badges-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 14px;
 }
-
-.rpg-badges-header h3 {
-    font-size: 1rem;
-    color: var(--text-primary);
-}
-
+.rpg-badges-header h3 { font-size: 0.95rem; color: var(--text-primary); margin: 0; }
 .rpg-badges-count {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--accent);
+    font-size: 0.75rem; color: var(--text-secondary);
     font-weight: 600;
-    background: rgba(13, 147, 115, 0.1);
-    padding: 4px 12px;
-    border-radius: 999px;
 }
-
-.rpg-badge-category {
-    margin-bottom: 16px;
-}
-
-.rpg-badge-category:last-child {
-    margin-bottom: 0;
-}
-
+.rpg-badge-category { margin-bottom: 14px; }
+.rpg-badge-category:last-child { margin-bottom: 0; }
 .rpg-badge-category-title {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--text-secondary); text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 8px;
+    padding-bottom: 5px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
 }
-
+.rpg-cat-icon { width: 14px; height: 14px; display: inline-block; color: var(--text-secondary); }
+.rpg-cat-icon svg { width: 100%; height: 100%; }
 .rpg-badge-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
 }
 
+/* --- Individual Badge --- */
 .rpg-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 12px 8px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg-primary);
-    transition: all 0.3s;
-    cursor: default;
-    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 6px 8px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg-primary);
+    transition: all 0.25s; cursor: default; text-align: center;
 }
-
-.rpg-badge.earned {
-    border-color: rgba(13, 147, 115, 0.3);
-    background: rgba(13, 147, 115, 0.04);
-}
-
-.rpg-badge.earned:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 12px rgba(13, 147, 115, 0.15);
-    transform: translateY(-2px);
-}
-
-.rpg-badge.locked {
-    opacity: 0.35;
-    filter: grayscale(1);
-}
-
-.rpg-badge.locked:hover {
-    opacity: 0.55;
-    filter: grayscale(0.5);
-}
-
 .rpg-badge-icon {
-    font-size: 1.6rem;
-    margin-bottom: 4px;
+    width: 28px; height: 28px; margin-bottom: 4px;
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
 }
+.rpg-badge-icon svg { width: 100%; height: 100%; }
+.rpg-badge-name { font-size: 0.68rem; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+.rpg-badge-desc { font-size: 0.6rem; color: var(--text-secondary); margin-top: 2px; line-height: 1.2; }
 
-.rpg-badge-name {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
+/* Earned */
+.rpg-badge.earned { background: rgba(13,147,115,0.03); }
+.rpg-badge.earned:hover { border-color: var(--accent); transform: translateY(-1px); }
 
-.rpg-badge-desc {
-    font-size: 0.65rem;
-    color: var(--text-secondary);
-    margin-top: 2px;
-}
+/* Locked */
+.rpg-badge.locked { opacity: 0.28; }
+.rpg-badge.locked .rpg-badge-icon { color: var(--text-secondary); }
+.rpg-badge.locked:hover { opacity: 0.45; }
 
-/* Badge tier glow effects */
-.rpg-badge.earned.tier-1 { border-color: #6b728040; }
-.rpg-badge.earned.tier-2 { border-color: #10b98140; }
-.rpg-badge.earned.tier-3 {
-    border-color: #3b82f650;
-    box-shadow: 0 0 6px rgba(59, 130, 246, 0.08);
-}
+/* --- Tier Colors --- */
+.rpg-badge.earned.tier-1 { border-color: rgba(107,114,128,0.25); }
+.rpg-badge.earned.tier-1 .rpg-badge-icon { color: #9ca3af; }
+
+.rpg-badge.earned.tier-2 { border-color: rgba(16,185,129,0.3); }
+.rpg-badge.earned.tier-2 .rpg-badge-icon { color: #10b981; }
+
+.rpg-badge.earned.tier-3 { border-color: rgba(59,130,246,0.35); }
+.rpg-badge.earned.tier-3 .rpg-badge-icon { color: #3b82f6; }
+
 .rpg-badge.earned.tier-4 {
-    border-color: #a855f750;
-    background: rgba(168, 85, 247, 0.03);
-    box-shadow: 0 0 8px rgba(168, 85, 247, 0.08);
+    border-color: rgba(139,92,246,0.35);
+    background: rgba(139,92,246,0.03);
 }
+.rpg-badge.earned.tier-4 .rpg-badge-icon { color: #8b5cf6; }
+
 .rpg-badge.earned.tier-5 {
-    border-color: #f59e0b60;
-    background: rgba(245, 158, 11, 0.04);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
-    animation: badge-glow-gold 3s ease-in-out infinite;
+    border-color: rgba(245,158,11,0.4);
+    background: rgba(245,158,11,0.03);
+    box-shadow: 0 0 8px rgba(245,158,11,0.06);
+    animation: tier-gold 4s ease-in-out infinite;
 }
+.rpg-badge.earned.tier-5 .rpg-badge-icon { color: #f59e0b; }
+
 .rpg-badge.earned.tier-6,
 .rpg-badge.earned.tier-7,
 .rpg-badge.earned.tier-8 {
-    border-color: #ef444470;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.04), rgba(168, 85, 247, 0.04));
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
-    animation: badge-glow-legendary 3s ease-in-out infinite;
+    border-color: rgba(239,68,68,0.35);
+    background: linear-gradient(135deg, rgba(239,68,68,0.03), rgba(139,92,246,0.03));
+    animation: tier-legendary 4s ease-in-out infinite;
+}
+.rpg-badge.earned.tier-6 .rpg-badge-icon,
+.rpg-badge.earned.tier-7 .rpg-badge-icon,
+.rpg-badge.earned.tier-8 .rpg-badge-icon { color: #ef4444; }
+
+@keyframes tier-gold {
+    0%, 100% { box-shadow: 0 0 4px rgba(245,158,11,0.04); }
+    50% { box-shadow: 0 0 12px rgba(245,158,11,0.12); }
+}
+@keyframes tier-legendary {
+    0%, 100% { box-shadow: 0 0 4px rgba(239,68,68,0.04); }
+    50% { box-shadow: 0 0 14px rgba(239,68,68,0.1), 0 0 20px rgba(139,92,246,0.06); }
 }
 
-@keyframes badge-glow-gold {
-    0%, 100% { box-shadow: 0 0 6px rgba(245, 158, 11, 0.08); }
-    50% { box-shadow: 0 0 14px rgba(245, 158, 11, 0.2); }
-}
-
-@keyframes badge-glow-legendary {
-    0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.08); }
-    50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.2), 0 0 30px rgba(168, 85, 247, 0.1); }
-}
-
-/* Leaderboard RPG styles */
-.lb-row-clickable {
-    cursor: pointer;
-    transition: background 0.15s;
-}
-
-.lb-row-clickable:hover {
-    background: rgba(13, 147, 115, 0.04) !important;
-}
-
-.lb-rank-cell {
-    width: 48px;
-    text-align: center;
-}
-
-.lb-rank-icon {
-    font-size: 1.1rem;
-    font-weight: 700;
-}
-
-.lb-user-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
+/* --- Leaderboard --- */
+.lb-row-clickable { cursor: pointer; transition: background 0.15s; }
+.lb-row-clickable:hover { background: rgba(13,147,115,0.03) !important; }
+.lb-rank-cell { width: 44px; text-align: center; }
+.lb-rank-num { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; }
+.lb-medal { width: 22px; height: 22px; vertical-align: middle; }
+.lb-user-cell { display: flex; align-items: center; gap: 10px; }
 .lb-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    border: 2px solid var(--border);
+    width: 28px; height: 28px; border-radius: 50%;
+    flex-shrink: 0; border: 2px solid var(--border);
 }
-
 .lb-avatar-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-primary);
-    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-primary); color: var(--text-secondary);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.72rem; font-weight: 700;
 }
-
-.lb-user-info {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
+.lb-user-info { display: flex; flex-direction: column; min-width: 0; }
 .lb-username {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-primary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-weight: 600; font-size: 0.82rem; color: var(--text-primary);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-
-.lb-rank-title {
-    font-size: 0.68rem;
-    color: var(--accent);
-    font-weight: 500;
-}
-
+.lb-rank-title { font-size: 0.65rem; color: var(--accent); font-weight: 500; }
 .lb-level-badge {
-    display: inline-block;
-    background: var(--accent);
-    color: #fff;
+    display: inline-block; background: var(--accent); color: #fff;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
+    font-size: 0.65rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px;
 }
+.lb-xp { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
 
-.lb-xp {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-}
+/* Top 3 */
+.bt-table tbody tr.lb-top1 .lb-avatar { border-color: #d4af37; }
+.bt-table tbody tr.lb-top2 .lb-avatar { border-color: #a0a0a0; }
+.bt-table tbody tr.lb-top3 .lb-avatar { border-color: #cd7f32; }
 
-/* Top 3 enhanced styles */
-.bt-table tbody tr.lb-top1 .lb-avatar {
-    border-color: #d4af37;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
-}
-
-.bt-table tbody tr.lb-top2 .lb-avatar {
-    border-color: #c0c0c0;
-    box-shadow: 0 0 6px rgba(192, 192, 192, 0.3);
-}
-
-.bt-table tbody tr.lb-top3 .lb-avatar {
-    border-color: #cd7f32;
-    box-shadow: 0 0 6px rgba(205, 127, 50, 0.3);
-}
-
-/* Responsive RPG */
+/* --- Responsive --- */
 @media (max-width: 768px) {
-    .rpg-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .rpg-badge-grid {
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    }
-
-    .rpg-profile-hero {
-        padding: 20px;
-    }
-
-    .rpg-profile-name {
-        font-size: 1.2rem;
-    }
-
-    .rpg-level-ring {
-        width: 80px;
-        height: 80px;
-    }
-
-    .rpg-level-number {
-        font-size: 1.4rem;
-    }
+    .rpg-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .rpg-badge-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    .rpg-profile-hero { padding: 18px; }
+    .rpg-profile-name { font-size: 1.15rem; }
+    .rpg-level-ring { width: 76px; height: 76px; }
+    .rpg-level-number { font-size: 1.3rem; }
 }
