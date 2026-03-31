@@ -5,19 +5,17 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { useMapStore } from '@/stores/mapStore'
 import { useAuthStore } from '@/stores/authStore'
 import { authFetch } from '@/api/client'
-import { Flame, MapPin, Search } from 'lucide-react'
+import { Flame, MapPin, Search, Crosshair } from 'lucide-react'
 
-// Fix leaflet default icon
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 L.Icon.Default.mergeOptions({ iconUrl, shadowUrl })
 
 const ENC_COLORS: Record<string, string> = {
-  WPA3: '#44d97f', WPA2: '#3ea8f5', WPA: '#e8a23e', WEP: '#e8524a', Open: '#7a7486', Unknown: '#5a5466',
+  WPA3: '#5cb85c', WPA2: '#4a9eda', WPA: '#d4943a', WEP: '#c9463e', Open: '#8a7e6a', Unknown: '#6a6050',
 }
-
-const BT_COLOR = '#7c6df0'
-const CELL_COLOR = '#e8a23e'
+const BT_COLOR = '#8a7ad8'
+const CELL_COLOR = '#d4943a'
 
 function escapeHtml(str: string): string {
   const div = document.createElement('div')
@@ -33,13 +31,11 @@ export function MapPage() {
   const btLayerRef = useRef<L.LayerGroup | null>(null)
   const cellLayerRef = useRef<L.LayerGroup | null>(null)
   const [searchVal, setSearchVal] = useState('')
-
   const { viewMode, mineOnly, showBtLayer, showCellLayer, encryptionFilters, setViewMode } = useMapStore()
   const { isAuthenticated } = useAuthStore()
-
   const fetchWifiRef = useRef<((map: L.Map, cluster: L.MarkerClusterGroup) => Promise<void>) | null>(null)
 
-  // Initialize map (once)
+  // Initialize map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
@@ -65,20 +61,26 @@ export function MapPage() {
     })
     map.addLayer(cluster)
     clusterRef.current = cluster
-
     btLayerRef.current = L.layerGroup()
     cellLayerRef.current = L.layerGroup()
-
     mapRef.current = map
+
+    // Try to geolocate user
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          map.setView([pos.coords.latitude, pos.coords.longitude], 13)
+        },
+        () => { /* fallback to default view */ },
+        { timeout: 5000, enableHighAccuracy: false }
+      )
+    }
 
     const loadData = () => fetchWifiRef.current?.(map, cluster)
     map.on('moveend', loadData)
     loadData()
 
-    return () => {
-      map.remove()
-      mapRef.current = null
-    }
+    return () => { map.remove(); mapRef.current = null }
   }, [])
 
   useEffect(() => {
@@ -88,31 +90,21 @@ export function MapPage() {
 
   useEffect(() => {
     if (!mapRef.current) return
-    if (showBtLayer) {
-      btLayerRef.current?.addTo(mapRef.current)
-      fetchBtData(mapRef.current)
-    } else {
-      btLayerRef.current?.remove()
-    }
+    if (showBtLayer) { btLayerRef.current?.addTo(mapRef.current); fetchBtData(mapRef.current) }
+    else { btLayerRef.current?.remove() }
   }, [showBtLayer])
 
   useEffect(() => {
     if (!mapRef.current) return
-    if (showCellLayer) {
-      cellLayerRef.current?.addTo(mapRef.current)
-      fetchCellData(mapRef.current)
-    } else {
-      cellLayerRef.current?.remove()
-    }
+    if (showCellLayer) { cellLayerRef.current?.addTo(mapRef.current); fetchCellData(mapRef.current) }
+    else { cellLayerRef.current?.remove() }
   }, [showCellLayer])
 
   const fetchWifiData = useCallback(async (map: L.Map, cluster: L.MarkerClusterGroup) => {
     const bounds = map.getBounds()
     const params = new URLSearchParams({
-      lat_min: String(bounds.getSouth()),
-      lat_max: String(bounds.getNorth()),
-      lon_min: String(bounds.getWest()),
-      lon_max: String(bounds.getEast()),
+      lat_min: String(bounds.getSouth()), lat_max: String(bounds.getNorth()),
+      lon_min: String(bounds.getWest()), lon_max: String(bounds.getEast()),
     })
     if (mineOnly) params.set('mine_only', 'true')
 
@@ -122,10 +114,7 @@ export function MapPage() {
       const geojson = await res.json()
 
       cluster.clearLayers()
-      if (heatRef.current) {
-        mapRef.current?.removeLayer(heatRef.current)
-        heatRef.current = null
-      }
+      if (heatRef.current) { mapRef.current?.removeLayer(heatRef.current); heatRef.current = null }
 
       const features = geojson.features?.filter((f: any) => {
         const enc = f.properties?.encryption ?? 'Unknown'
@@ -133,17 +122,11 @@ export function MapPage() {
       }) ?? []
 
       if (viewMode === 'heatmap') {
-        const heatData = features.map((f: any) => [
-          f.geometry.coordinates[1],
-          f.geometry.coordinates[0],
-          0.5,
-        ])
+        const heatData = features.map((f: any) => [f.geometry.coordinates[1], f.geometry.coordinates[0], 0.5])
         if (heatData.length > 0 && (L as any).heatLayer) {
           heatRef.current = (L as any).heatLayer(heatData, {
-            radius: 18,
-            blur: 25,
-            maxZoom: 17,
-            gradient: { 0.2: '#15141c', 0.4: '#3ea8f544', 0.6: '#3ea8f5', 0.8: '#44d97f', 1: '#e8b830' },
+            radius: 20, blur: 25, maxZoom: 17,
+            gradient: { 0.2: '#1a1714', 0.4: '#4a9eda44', 0.6: '#4a9eda', 0.8: '#5cb85c', 1: '#c9a032' },
           }).addTo(map)
         }
       } else {
@@ -154,30 +137,22 @@ export function MapPage() {
           const color = ENC_COLORS[enc] ?? ENC_COLORS.Unknown
 
           const marker = L.circleMarker([lat, lon], {
-            radius: 5,
-            color,
-            fillColor: color,
-            fillOpacity: 0.75,
-            weight: 1.5,
+            radius: 6, color, fillColor: color, fillOpacity: 0.8, weight: 1.5,
           })
-
           marker.bindPopup(`
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8;">
-              <div style="font-weight: 700; color: ${color}; margin-bottom: 4px; font-size: 13px;">${escapeHtml(p.ssid || '<hidden>')}</div>
-              <span style="color: #9e96b0;">BSSID</span> ${escapeHtml(String(p.bssid))}<br/>
-              <span style="color: #9e96b0;">Enc</span> <span style="color: ${color}; font-weight: 600;">${escapeHtml(enc)}</span><br/>
-              ${p.channel ? `<span style="color: #9e96b0;">Ch</span> ${p.channel}<br/>` : ''}
-              ${p.rssi ? `<span style="color: #9e96b0;">Sig</span> ${p.rssi} dBm<br/>` : ''}
-              <span style="color: #9e96b0;">GPS</span> <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener" style="color: #c9a84c; text-decoration: none;">${lat.toFixed(5)}, ${lon.toFixed(5)}</a>
+            <div style="font-size:13px; line-height:1.8;">
+              <div style="font-weight:700; color:${color}; font-size:14px; margin-bottom:4px;">${escapeHtml(p.ssid || '<hidden>')}</div>
+              <span style="color:#a89880;">BSSID</span> ${escapeHtml(String(p.bssid))}<br/>
+              <span style="color:#a89880;">Enc</span> <span style="color:${color}; font-weight:600;">${escapeHtml(enc)}</span><br/>
+              ${p.channel ? `<span style="color:#a89880;">Ch</span> ${p.channel}<br/>` : ''}
+              ${p.rssi ? `<span style="color:#a89880;">Sig</span> ${p.rssi} dBm<br/>` : ''}
+              <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener" style="color:#c4a24e; text-decoration:none;">${lat.toFixed(5)}, ${lon.toFixed(5)}</a>
             </div>
           `)
-
           cluster.addLayer(marker)
         })
       }
-    } catch (err) {
-      console.error('Failed to load WiFi data:', err)
-    }
+    } catch (err) { console.error('Failed to load WiFi data:', err) }
   }, [mineOnly, encryptionFilters, viewMode])
 
   fetchWifiRef.current = fetchWifiData
@@ -191,15 +166,9 @@ export function MapPage() {
       btLayerRef.current?.clearLayers()
       geojson.features?.forEach((f: any) => {
         const [lon, lat] = f.geometry.coordinates
-        L.circleMarker([lat, lon], {
-          radius: 4, color: BT_COLOR, fillColor: BT_COLOR, fillOpacity: 0.75, weight: 1,
-        }).bindPopup(`
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">
-            <div style="font-weight: 700; color: ${BT_COLOR};">${escapeHtml(f.properties.name || '<unknown>')}</div>
-            <span style="color: #9e96b0;">MAC</span> ${escapeHtml(String(f.properties.mac))}<br/>
-            <span style="color: #9e96b0;">Type</span> ${escapeHtml(String(f.properties.device_type))}
-          </div>
-        `).addTo(btLayerRef.current!)
+        L.circleMarker([lat, lon], { radius: 5, color: BT_COLOR, fillColor: BT_COLOR, fillOpacity: 0.8, weight: 1 })
+          .bindPopup(`<div style="font-size:13px;"><b style="color:${BT_COLOR};">${escapeHtml(f.properties.name || '<unknown>')}</b><br/><span style="color:#a89880;">MAC</span> ${escapeHtml(String(f.properties.mac))}<br/><span style="color:#a89880;">Type</span> ${escapeHtml(String(f.properties.device_type))}</div>`)
+          .addTo(btLayerRef.current!)
       })
     } catch {}
   }
@@ -213,15 +182,9 @@ export function MapPage() {
       cellLayerRef.current?.clearLayers()
       geojson.features?.forEach((f: any) => {
         const [lon, lat] = f.geometry.coordinates
-        L.circleMarker([lat, lon], {
-          radius: 6, color: CELL_COLOR, fillColor: CELL_COLOR, fillOpacity: 0.75, weight: 1,
-        }).bindPopup(`
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">
-            <div style="font-weight: 700; color: ${CELL_COLOR};">${f.properties.radio}</div>
-            <span style="color: #9e96b0;">MCC/MNC</span> ${f.properties.mcc}/${f.properties.mnc}<br/>
-            <span style="color: #9e96b0;">LAC/CID</span> ${f.properties.lac}/${f.properties.cid}
-          </div>
-        `).addTo(cellLayerRef.current!)
+        L.circleMarker([lat, lon], { radius: 7, color: CELL_COLOR, fillColor: CELL_COLOR, fillOpacity: 0.8, weight: 1 })
+          .bindPopup(`<div style="font-size:13px;"><b style="color:${CELL_COLOR};">${f.properties.radio}</b><br/><span style="color:#a89880;">MCC/MNC</span> ${f.properties.mcc}/${f.properties.mnc}<br/><span style="color:#a89880;">LAC/CID</span> ${f.properties.lac}/${f.properties.cid}</div>`)
+          .addTo(cellLayerRef.current!)
       })
     } catch {}
   }
@@ -234,10 +197,18 @@ export function MapPage() {
       const data = await res.json()
       const results = data.results ?? data
       if (results.length > 0) {
-        const { latitude, longitude } = results[0]
-        mapRef.current.setView([latitude, longitude], 16)
+        mapRef.current.setView([results[0].latitude, results[0].longitude], 16)
       }
     } catch {}
+  }
+
+  const geolocate = () => {
+    if (!mapRef.current || !('geolocation' in navigator)) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => mapRef.current?.setView([pos.coords.latitude, pos.coords.longitude], 14),
+      () => {},
+      { timeout: 5000 }
+    )
   }
 
   return (
@@ -246,48 +217,49 @@ export function MapPage() {
       <div className="flex-1 relative">
         <div ref={containerRef} className="absolute inset-0" />
 
-        {/* Map view mode controls — top right */}
-        <div className="absolute top-2.5 right-2.5 z-[1000]">
-          <div className="flex gap-0.5 ornate-card rounded-lg p-0.5">
-            <button
-              onClick={() => setViewMode('markers')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
-                viewMode === 'markers'
-                  ? 'bg-gold/12 text-gold'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              <MapPin size={12} />
-              <span className="hidden sm:inline">Markers</span>
-            </button>
-            <button
-              onClick={() => setViewMode('heatmap')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
-                viewMode === 'heatmap'
-                  ? 'bg-gold/12 text-gold'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              <Flame size={12} />
-              <span className="hidden sm:inline">Heatmap</span>
-            </button>
+        {/* Controls — top right */}
+        <div className="absolute top-3 right-3 z-[1000] flex gap-1.5">
+          <div className="flex gap-0.5 parchment rounded-lg p-1">
+            <CtrlBtn active={viewMode === 'markers'} onClick={() => setViewMode('markers')} icon={<MapPin size={15} />} label="Markers" />
+            <CtrlBtn active={viewMode === 'heatmap'} onClick={() => setViewMode('heatmap')} icon={<Flame size={15} />} label="Heatmap" />
           </div>
+          <button
+            onClick={geolocate}
+            className="parchment rounded-lg p-2.5 text-secondary hover:text-gold transition-colors"
+            title="Center on my location"
+          >
+            <Crosshair size={16} />
+          </button>
         </div>
 
-        {/* Search — bottom right */}
-        <div className="absolute bottom-3 right-3 left-3 sm:left-auto z-[1000] sm:w-72">
+        {/* Search — bottom */}
+        <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-[1000] sm:w-80">
           <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
             <input
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search SSID or BSSID..."
-              className="w-full pl-8 pr-3 py-2 ornate-card rounded-lg text-[11px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 parchment rounded-lg text-[13px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none transition-colors"
             />
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function CtrlBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-[13px] font-semibold transition-all ${
+        active ? 'bg-gold/12 text-gold' : 'text-secondary hover:text-primary'
+      }`}
+    >
+      {icon}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   )
 }

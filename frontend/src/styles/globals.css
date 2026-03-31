@@ -1,49 +1,48 @@
 @import "tailwindcss";
 
-/* ── Fonts ── */
 @font-face { font-family: 'Cinzel'; font-display: swap; }
 
-/* ── Theme: D&D Dungeon meets Cyberpunk Terminal ── */
+/* ── D&D Parchment Theme ── */
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --font-display: 'Cinzel', serif;
 
-  /* Warm dark backgrounds — like parchment in shadow */
-  --color-void: #0c0b10;
-  --color-panel: #15141c;
-  --color-surface: #1e1c28;
-  --color-surface-hover: #282636;
-  --color-border: #322f45;
-  --color-border-glow: #4a4568;
+  /* Parchment backgrounds — warm yellowed paper tones */
+  --color-void: #1a1714;
+  --color-panel: #23201b;
+  --color-surface: #2c2822;
+  --color-surface-hover: #35302a;
+  --color-border: #3e3830;
+  --color-border-glow: #584f42;
 
-  /* Text — warm off-white */
-  --color-primary: #ece8e1;
-  --color-secondary: #9e96b0;
-  --color-muted: #655f78;
+  /* Text — warm readable tones */
+  --color-primary: #e8dcc8;
+  --color-secondary: #a89880;
+  --color-muted: #756a58;
 
   /* Core accents */
-  --color-xp: #44d97f;
-  --color-wifi: #3ea8f5;
-  --color-bt: #7c6df0;
-  --color-cell: #e8a23e;
-  --color-danger: #e8524a;
-  --color-rare: #9366e8;
-  --color-legendary: #e8b830;
-  --color-mythic: #d94089;
-  --color-epic: #9366e8;
+  --color-xp: #5cb85c;
+  --color-wifi: #4a9eda;
+  --color-bt: #8a7ad8;
+  --color-cell: #d4943a;
+  --color-danger: #c9463e;
+  --color-rare: #7e5ec2;
+  --color-legendary: #c9a032;
+  --color-mythic: #b8366e;
+  --color-epic: #7e5ec2;
 
-  /* Encryption colors */
-  --color-enc-wpa3: #44d97f;
-  --color-enc-wpa2: #3ea8f5;
-  --color-enc-wpa: #e8a23e;
-  --color-enc-wep: #e8524a;
-  --color-enc-open: #7a7486;
-  --color-enc-unknown: #5a5466;
+  /* Encryption */
+  --color-enc-wpa3: #5cb85c;
+  --color-enc-wpa2: #4a9eda;
+  --color-enc-wpa: #d4943a;
+  --color-enc-wep: #c9463e;
+  --color-enc-open: #8a7e6a;
+  --color-enc-unknown: #6a6050;
 
-  /* D&D accent — warm gold for headers/ornaments */
-  --color-gold: #c9a84c;
-  --color-gold-dim: #8b7535;
+  /* Gold — parchment accent */
+  --color-gold: #c4a24e;
+  --color-gold-dim: #8a7236;
 }
 
 /* ── Base ── */
@@ -58,122 +57,113 @@ body {
   background: var(--color-void);
   color: var(--color-primary);
   font-family: var(--font-sans);
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Scrollbar — stylized like old wood ── */
-::-webkit-scrollbar { width: 8px; height: 8px; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--color-void); }
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
-  border-radius: 4px;
-  border: 1px solid var(--color-void);
+  border-radius: 5px;
+  border: 2px solid var(--color-void);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-border-glow); }
 
-/* ── Leaflet Map — visible and clear ── */
+/* ══════════════════════════════════════
+   LEAFLET MAP — readable dark style
+   ══════════════════════════════════════ */
 .leaflet-container {
-  background: #1a1926 !important;
+  background: #1a1714 !important;
   font-family: var(--font-sans) !important;
 }
 
-/* Map tiles: keep readable, just slightly muted to match dark theme */
 .leaflet-tile-pane {
-  filter: brightness(0.88) contrast(1.05) saturate(0.6) sepia(0.08);
+  filter: brightness(0.92) contrast(1.05) saturate(0.55) sepia(0.15);
 }
 
 .leaflet-popup-content-wrapper {
   background: var(--color-panel) !important;
   color: var(--color-primary) !important;
-  border-radius: 10px !important;
-  border: 1px solid var(--color-gold-dim) !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 1px var(--color-gold-dim) !important;
+  border-radius: 8px !important;
+  border: 2px solid var(--color-gold-dim) !important;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5) !important;
+  font-size: 13px !important;
 }
-
 .leaflet-popup-tip { background: var(--color-panel) !important; }
-
 .leaflet-popup-content {
   font-family: var(--font-mono) !important;
-  font-size: 0.8rem !important;
+  font-size: 13px !important;
   line-height: 1.7 !important;
-  margin: 12px 16px !important;
+  margin: 14px 18px !important;
 }
 
-/* Clusters — warm glow */
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-  background: rgba(62, 168, 245, 0.15) !important;
+  background: rgba(74, 158, 218, 0.18) !important;
 }
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-  background: rgba(62, 168, 245, 0.75) !important;
+  background: rgba(74, 158, 218, 0.78) !important;
   color: #fff !important;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
 }
 
-/* Leaflet controls — match theme */
 .leaflet-control-zoom a {
   background: var(--color-panel) !important;
   color: var(--color-primary) !important;
   border-color: var(--color-border) !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  font-size: 18px !important;
 }
-.leaflet-control-zoom a:hover {
-  background: var(--color-surface) !important;
-}
+.leaflet-control-zoom a:hover { background: var(--color-surface) !important; }
 .leaflet-control-attribution {
-  background: rgba(12, 11, 16, 0.7) !important;
+  background: rgba(26, 23, 20, 0.8) !important;
   color: var(--color-muted) !important;
-  font-size: 9px !important;
+  font-size: 10px !important;
 }
-.leaflet-control-attribution a {
-  color: var(--color-secondary) !important;
-}
+.leaflet-control-attribution a { color: var(--color-secondary) !important; }
 
-/* ── RPG Animations ── */
+/* ══════════════════════════════════════
+   RPG ANIMATIONS
+   ══════════════════════════════════════ */
 @keyframes xp-shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
-
 @keyframes glow-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
-
 @keyframes badge-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-3px); }
 }
-
 @keyframes level-up {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 0.8; }
   100% { transform: scale(1); opacity: 1; }
 }
-
 @keyframes ring-fill {
   from { stroke-dashoffset: 283; }
 }
-
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes text-glow {
   0%, 100% { text-shadow: 0 0 4px currentColor; }
-  50% { text-shadow: 0 0 12px currentColor, 0 0 24px currentColor; }
+  50% { text-shadow: 0 0 12px currentColor, 0 0 20px currentColor; }
 }
 
-.animate-xp-shimmer {
-  background-size: 200% 100%;
-  animation: xp-shimmer 2s linear infinite;
-}
-
+.animate-xp-shimmer { background-size: 200% 100%; animation: xp-shimmer 2s linear infinite; }
 .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
 .animate-badge-float { animation: badge-float 3s ease-in-out infinite; }
 .animate-level-up { animation: level-up 0.5s ease-out; }
@@ -181,39 +171,48 @@ body {
 .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
 .animate-text-glow { animation: text-glow 2s ease-in-out infinite; }
 
-/* ── Tier glow effects — warm fantasy tones ── */
-.glow-common { box-shadow: 0 0 6px rgba(122, 116, 134, 0.3); }
-.glow-uncommon { box-shadow: 0 0 10px rgba(68, 217, 127, 0.35); }
-.glow-rare { box-shadow: 0 0 14px rgba(62, 168, 245, 0.45); }
-.glow-epic { box-shadow: 0 0 18px rgba(147, 102, 232, 0.5), 0 0 36px rgba(147, 102, 232, 0.15); }
-.glow-legendary { box-shadow: 0 0 22px rgba(232, 184, 48, 0.5), 0 0 44px rgba(232, 184, 48, 0.15); }
-.glow-mythic { box-shadow: 0 0 28px rgba(217, 64, 137, 0.5), 0 0 56px rgba(217, 64, 137, 0.2); }
+/* ══════════════════════════════════════
+   TIER GLOW EFFECTS
+   ══════════════════════════════════════ */
+.glow-common { box-shadow: 0 0 6px rgba(138, 126, 106, 0.3); }
+.glow-uncommon { box-shadow: 0 0 10px rgba(92, 184, 92, 0.35); }
+.glow-rare { box-shadow: 0 0 14px rgba(74, 158, 218, 0.4); }
+.glow-epic { box-shadow: 0 0 18px rgba(126, 94, 194, 0.45), 0 0 32px rgba(126, 94, 194, 0.15); }
+.glow-legendary { box-shadow: 0 0 22px rgba(196, 160, 50, 0.45), 0 0 40px rgba(196, 160, 50, 0.15); }
+.glow-mythic { box-shadow: 0 0 26px rgba(184, 54, 110, 0.45), 0 0 48px rgba(184, 54, 110, 0.2); }
 
-/* ── D&D-style ornamental border ── */
-.ornate-border {
-  border: 1px solid var(--color-border);
-  box-shadow:
-    inset 0 1px 0 rgba(201, 168, 76, 0.08),
-    0 1px 3px rgba(0,0,0,0.3);
-}
-
-.ornate-card {
+/* ══════════════════════════════════════
+   PARCHMENT CARD SYSTEM
+   ══════════════════════════════════════ */
+.parchment {
   background:
-    linear-gradient(135deg, rgba(201,168,76,0.03) 0%, transparent 50%),
+    linear-gradient(160deg, rgba(196,162,78,0.04) 0%, transparent 40%),
+    linear-gradient(340deg, rgba(196,162,78,0.02) 60%, transparent 100%),
     var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow:
-    inset 0 1px 0 rgba(201,168,76,0.06),
-    0 2px 8px rgba(0,0,0,0.3);
+    inset 0 1px 0 rgba(232, 220, 200, 0.04),
+    0 2px 8px rgba(0,0,0,0.25);
 }
 
-.ornate-header {
+.parchment-header {
   background:
-    linear-gradient(90deg, transparent, rgba(201,168,76,0.06), transparent);
+    linear-gradient(90deg, rgba(196,162,78,0.08), rgba(196,162,78,0.03), transparent);
   border-bottom: 1px solid var(--color-border);
 }
 
-/* ── Utility ── */
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+/* ══════════════════════════════════════
+   UTILITIES
+   ══════════════════════════════════════ */
 .font-display { font-family: var(--font-display); }
 .text-xp { color: var(--color-xp); }
 .text-wifi { color: var(--color-wifi); }

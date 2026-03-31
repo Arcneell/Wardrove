@@ -28,7 +28,7 @@ export function MyQuarters() {
         <div className="text-center">
           <Shield size={40} className="mx-auto mb-3 text-muted" />
           <div className="font-display text-lg font-bold text-primary mb-1">Quarters Locked</div>
-          <div className="text-xs">Login to access your personal quarters</div>
+          <div className="text-[13px]">Login to access your personal quarters</div>
         </div>
       </div>
     )
@@ -55,20 +55,20 @@ export function MyQuarters() {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-5">
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-gold mb-1">My Quarters</h1>
-          <p className="text-xs text-secondary">Your personal command center</p>
+          <p className="text-[13px] text-secondary">Your personal command center</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex justify-center gap-1 mb-6 flex-wrap">
+        <div className="flex justify-center gap-1 mb-8 flex-wrap">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] sm:text-[13px] font-semibold transition-all ${
                 tab === t.key ? 'bg-gold/12 text-gold border border-gold/25' : 'text-secondary hover:text-primary border border-transparent'
               }`}
             >
@@ -80,14 +80,14 @@ export function MyQuarters() {
         {/* Overview */}
         {tab === 'overview' && (
           <div className="space-y-4">
-            <div className="ornate-card rounded-xl p-5 sm:p-7 relative overflow-hidden">
+            <div className="parchment rounded-xl p-5 sm:p-7 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-b from-gold/[0.03] to-transparent" />
               <div className="relative flex flex-col md:flex-row items-center gap-6">
                 <LevelRing level={profile.level} xp={profile.xp} xpProgress={profile.xp_progress} size={140} avatarUrl={user.avatar_url} />
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="font-display text-xl font-bold text-primary">{user.username}</h2>
                   {profile.global_rank > 0 && (
-                    <div className="text-[10px] font-mono text-legendary mt-0.5">Global Rank #{profile.global_rank}</div>
+                    <div className="text-[12px] font-mono text-legendary mt-0.5">Global Rank #{profile.global_rank}</div>
                   )}
                   <div className="mt-3 max-w-xs mx-auto md:mx-0">
                     <XPBar xp={profile.xp} level={profile.level} xpProgress={profile.xp_progress} xpCurrent={profile.xp_current_level} xpNext={profile.xp_next_level} />
@@ -96,7 +96,7 @@ export function MyQuarters() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3">
               <StatCard icon={<Wifi size={16} />} value={profile.wifi_discovered} label="WiFi" color="text-wifi" />
               <StatCard icon={<Bluetooth size={16} />} value={profile.bt_discovered} label="Bluetooth" color="text-bt" />
               <StatCard icon={<Radio size={16} />} value={profile.cell_discovered} label="Cell" color="text-cell" />
@@ -104,14 +104,14 @@ export function MyQuarters() {
             </div>
 
             {earnedCount > 0 && (
-              <div className="ornate-card rounded-xl p-4">
+              <div className="parchment rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display text-xs font-bold text-gold">Recent Badges</h3>
-                  <button onClick={() => setTab('badges')} className="text-[10px] text-gold/70 hover:text-gold hover:underline">
+                  <h3 className="font-display text-[13px] font-bold text-gold">Recent Badges</h3>
+                  <button onClick={() => setTab('badges')} className="text-[12px] text-gold/70 hover:text-gold hover:underline">
                     View all
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {badges?.filter((b) => b.earned).slice(-4).reverse().map((badge) => (
                     <BadgeCard key={badge.id} badge={badge} />
                   ))}
@@ -128,7 +128,7 @@ export function MyQuarters() {
               <div className="font-display text-3xl font-bold text-legendary mb-0.5">
                 {earnedCount} / {totalCount}
               </div>
-              <div className="text-xs text-secondary">Badges Collected</div>
+              <div className="text-[13px] text-secondary">Badges Collected</div>
               <div className="w-40 h-1.5 bg-void/60 rounded-full overflow-hidden mx-auto mt-2 border border-border/50">
                 <div
                   className="h-full bg-gradient-to-r from-gold-dim to-gold rounded-full"
@@ -140,15 +140,15 @@ export function MyQuarters() {
             {Object.entries(badgesByCategory).map(([category, categoryBadges]) => (
               <div key={category}>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[9px] font-display font-bold uppercase tracking-[0.15em] text-gold/60">
+                  <span className="text-[11px] font-display font-bold uppercase tracking-[0.15em] text-gold/60">
                     {getCategoryLabel(category)}
                   </span>
-                  <span className="text-[9px] font-mono text-muted">
+                  <span className="text-[11px] font-mono text-muted">
                     {categoryBadges.filter((b) => b.earned).length}/{categoryBadges.length}
                   </span>
                   <div className="flex-1 h-px bg-gradient-to-r from-gold/10 to-transparent" />
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {categoryBadges.map((badge) => (
                     <BadgeCard key={badge.id} badge={badge} showProgress currentValue={userValues[badge.criteria_type] ?? 0} />
                   ))}
@@ -164,16 +164,16 @@ export function MyQuarters() {
             {!uploads || uploads.length === 0 ? (
               <div className="text-center py-12 text-secondary">
                 <ScrollText size={36} className="mx-auto mb-3 text-muted" />
-                <div className="font-display text-base font-bold text-primary mb-1">No Quests Yet</div>
-                <div className="text-xs">Upload your first wardriving capture to begin</div>
+                <div className="font-display text-[15px] font-bold text-primary mb-1">No Quests Yet</div>
+                <div className="text-[13px]">Upload your first wardriving capture to begin</div>
               </div>
             ) : (
               uploads.map((tx) => (
-                <div key={tx.id} className="ornate-card rounded-lg p-3 flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+                <div key={tx.id} className="parchment rounded-lg p-3 flex flex-wrap sm:flex-nowrap items-center gap-2.5">
                   <StatusIcon status={tx.status} />
                   <div className="flex-1 min-w-0">
-                    <div className="font-mono text-xs font-semibold text-primary truncate">{tx.filename}</div>
-                    <div className="text-[9px] text-muted mt-0.5">
+                    <div className="font-mono text-[13px] font-semibold text-primary truncate">{tx.filename}</div>
+                    <div className="text-[11px] text-muted mt-0.5">
                       {timeAgo(tx.uploaded_at)}
                       {tx.file_format && <span className="ml-1.5 text-muted/70">{tx.file_format}</span>}
                     </div>
@@ -186,7 +186,7 @@ export function MyQuarters() {
                     </div>
                   )}
                   {tx.status === 'error' && (
-                    <span className="text-[10px] text-danger">{tx.status_message ?? 'Failed'}</span>
+                    <span className="text-[12px] text-danger">{tx.status_message ?? 'Failed'}</span>
                   )}
                 </div>
               ))
@@ -239,10 +239,10 @@ function SettingsTab() {
   }
 
   return (
-    <div className="ornate-card rounded-xl p-4 sm:p-5">
+    <div className="parchment rounded-xl p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-4">
         <Key size={14} className="text-gold" />
-        <h3 className="font-display text-xs font-bold text-gold">API Tokens</h3>
+        <h3 className="font-display text-[13px] font-bold text-gold">API Tokens</h3>
         <div className="flex-1 h-px bg-gradient-to-r from-gold/10 to-transparent" />
       </div>
 
@@ -251,12 +251,12 @@ function SettingsTab() {
           value={newTokenName}
           onChange={(e) => setNewTokenName(e.target.value)}
           placeholder="Token name..."
-          className="flex-1 px-2.5 py-1.5 bg-void/50 border border-border rounded-md text-[11px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none"
+          className="flex-1 px-2.5 py-1.5 bg-void/50 border border-border rounded-md text-[13px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none"
         />
         <button
           onClick={createToken}
           disabled={!newTokenName.trim() || loading}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md text-[10px] font-bold bg-gold/10 text-gold border border-gold/25 hover:bg-gold/20 disabled:opacity-25 transition-all"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-bold bg-gold/10 text-gold border border-gold/25 hover:bg-gold/20 disabled:opacity-25 transition-all"
         >
           <Plus size={12} /> Create
         </button>
@@ -264,9 +264,9 @@ function SettingsTab() {
 
       {newToken && (
         <div className="bg-xp/5 border border-xp/20 rounded-lg p-2.5 mb-3">
-          <div className="text-[9px] font-semibold text-xp mb-1">Copy now — won't be shown again!</div>
+          <div className="text-[11px] font-semibold text-xp mb-1">Copy now — won't be shown again!</div>
           <div className="flex items-center gap-1.5">
-            <code className="flex-1 font-mono text-[10px] text-primary bg-void/50 px-2 py-1 rounded break-all">{newToken}</code>
+            <code className="flex-1 font-mono text-[12px] text-primary bg-void/50 px-2 py-1 rounded break-all">{newToken}</code>
             <button onClick={() => navigator.clipboard.writeText(newToken)} className="p-1 text-muted hover:text-primary">
               <Copy size={12} />
             </button>
@@ -276,16 +276,16 @@ function SettingsTab() {
 
       <div className="space-y-1.5">
         {tokens.length === 0 ? (
-          <div className="text-[10px] text-muted py-4 text-center">No API tokens yet</div>
+          <div className="text-[12px] text-muted py-4 text-center">No API tokens yet</div>
         ) : (
           tokens.map((t) => (
             <div key={t.id} className="flex items-center justify-between bg-void/30 rounded-md px-2.5 py-2 border border-border/50">
               <div>
-                <div className={`text-[11px] font-semibold ${t.revoked ? 'text-muted line-through' : 'text-primary'}`}>{t.name}</div>
-                <div className="text-[9px] text-muted">Created {formatDate(t.created_at)}</div>
+                <div className={`text-[13px] font-semibold ${t.revoked ? 'text-muted line-through' : 'text-primary'}`}>{t.name}</div>
+                <div className="text-[11px] text-muted">Created {formatDate(t.created_at)}</div>
               </div>
               {t.revoked ? (
-                <span className="text-[9px] text-muted">Revoked</span>
+                <span className="text-[11px] text-muted">Revoked</span>
               ) : (
                 <button onClick={() => revokeToken(t.id)} className="text-danger/70 hover:text-danger transition-colors">
                   <Trash2 size={12} />
@@ -301,10 +301,10 @@ function SettingsTab() {
 
 function StatCard({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
   return (
-    <div className="ornate-card rounded-xl p-3 text-center">
+    <div className="parchment rounded-xl p-3 text-center">
       <div className={`${color} mb-0.5 flex justify-center opacity-70`}>{icon}</div>
       <div className={`font-mono font-bold text-lg ${color}`}>{formatNumber(value)}</div>
-      <div className="text-[9px] text-muted">{label}</div>
+      <div className="text-[11px] text-muted">{label}</div>
     </div>
   )
 }
@@ -321,7 +321,7 @@ function StatusIcon({ status }: { status: string }) {
 function MiniStat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div>
-      <div className={`font-mono text-[10px] font-semibold ${color}`}>{formatNumber(value)}</div>
+      <div className={`font-mono text-[12px] font-semibold ${color}`}>{formatNumber(value)}</div>
       <div className="text-[8px] text-muted">{label}</div>
     </div>
   )

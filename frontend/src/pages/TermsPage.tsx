@@ -3,20 +3,20 @@ import { Shield, ArrowLeft } from 'lucide-react'
 
 export function TermsPage() {
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-8">
       <div className="max-w-3xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-1 text-[10px] text-secondary hover:text-gold mb-4 transition-colors">
+        <Link to="/" className="inline-flex items-center gap-1 text-[12px] text-secondary hover:text-gold mb-4 transition-colors">
           <ArrowLeft size={12} /> Back to map
         </Link>
 
-        <div className="ornate-card rounded-xl p-5 sm:p-7">
+        <div className="parchment rounded-xl p-5 sm:p-7">
           <div className="flex items-center gap-2 mb-5">
             <Shield size={20} className="text-gold" />
             <h1 className="font-display text-xl font-bold text-gold">Terms of Service</h1>
           </div>
 
-          <div className="space-y-5 text-xs text-secondary leading-relaxed">
-            <p className="text-primary font-semibold text-sm">
+          <div className="space-y-5 text-[13px] text-secondary leading-relaxed">
+            <p className="text-primary font-semibold text-[14px]">
               Last updated: March 2026. By using Wardrove, you agree to these terms.
             </p>
 
@@ -92,7 +92,7 @@ export function TermsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-sm font-display font-bold text-gold/80 mb-1.5">{title}</h2>
+      <h2 className="text-[14px] font-display font-bold text-gold/80 mb-1.5">{title}</h2>
       <div className="space-y-1.5">{children}</div>
     </div>
   )
