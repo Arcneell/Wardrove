@@ -1,5 +1,7 @@
 import { $ } from '../utils.js';
 import { authFetch } from '../api.js';
+import { navigate } from '../router.js';
+import { getState } from '../state.js';
 import { loadGeoJSON } from '../pages/map.js';
 import { loadProfile, loadStats } from '../pages/sidebar.js';
 
@@ -10,8 +12,33 @@ export function initUpload() {
     const progressBar = $('progressBar');
     const progressFill = $('progressFill');
     const uploadResult = $('uploadResult');
+    const statusBadge = $('uploadStatusBadge');
+    const toastContainer = $('toastContainer');
+
+    function setUploadBusy(isBusy) {
+        if (!statusBadge) return;
+        statusBadge.style.display = isBusy ? '' : 'none';
+        statusBadge.classList.toggle('active', isBusy);
+    }
+
+    function showToast(message, kind = 'info') {
+        if (!toastContainer) return;
+        const el = document.createElement('div');
+        el.className = `toast ${kind}`;
+        el.textContent = message;
+        toastContainer.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('visible'));
+        setTimeout(() => {
+            el.classList.remove('visible');
+            setTimeout(() => el.remove(), 180);
+        }, 2800);
+    }
 
     $('uploadBtn').addEventListener('click', () => {
+        if (!getState('accessToken')) {
+            $('loginModal').classList.add('active');
+            return;
+        }
         uploadModal.classList.add('active');
         resetUploadUI();
     });
@@ -59,48 +86,28 @@ export function initUpload() {
         for (const file of fileList) form.append('files', file);
 
         try {
+            setUploadBusy(true);
             progressFill.style.width = '50%';
             const res = await authFetch('/api/v1/upload', { method: 'POST', body: form });
 
             if (!res.ok) throw new Error('Upload failed');
 
-            const transactions = await res.json();
-            progressFill.style.width = '70%';
-
-            // Poll for completion
-            let totalNew = 0, totalUpdated = 0, totalSkipped = 0, totalXp = 0;
-            for (const tx of transactions) {
-                const status = await pollTransaction(tx.transaction_id);
-                totalNew += status.new_networks || 0;
-                totalUpdated += status.updated_networks || 0;
-                totalSkipped += status.skipped_networks || 0;
-                totalXp += status.xp_earned || 0;
-            }
-
             progressFill.style.width = '100%';
-            $('resImported').textContent = totalNew;
-            $('resUpdated').textContent = totalUpdated;
-            $('resSkipped').textContent = totalSkipped;
-            $('resXp').textContent = '+' + totalXp;
-            uploadResult.style.display = 'block';
-
+            setTimeout(() => {
+                uploadModal.classList.remove('active');
+                resetUploadUI();
+                navigate('#uploads');
+            }, 250);
+            showToast('Upload envoye, traitement en cours', 'success');
             loadStats();
-            loadGeoJSON();
+            loadGeoJSON(false);
             loadProfile();
         } catch (e) {
             console.error('Upload error:', e);
             progressFill.style.background = '#dc3545';
+            showToast("Echec de l'upload", 'error');
+        } finally {
+            setTimeout(() => setUploadBusy(false), 1200);
         }
-    }
-
-    async function pollTransaction(txId) {
-        for (let i = 0; i < 60; i++) {
-            const res = await authFetch(`/api/v1/upload/status/${txId}`);
-            if (!res.ok) break;
-            const data = await res.json();
-            if (data.status === 'done' || data.status === 'error') return data;
-            await new Promise(r => setTimeout(r, 1000));
-        }
-        return {};
     }
 }

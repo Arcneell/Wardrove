@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <script type="module" crossorigin src="/assets/index-BgfYNU9z.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CRi3HHLC.css">
+  <script type="module" crossorigin src="/assets/index-BCFqxYqn.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-B94IWD9X.css">
 </head>
 <body>
 
@@ -23,9 +23,11 @@
             <button class="nav-tab" id="navCell">Cell Towers</button>
             <button class="nav-tab" id="navLeaderboard">Leaderboard</button>
             <button class="nav-tab" id="navGroups">Groups</button>
+            <button class="nav-tab" id="navUploads">Uploads</button>
         </nav>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
+        <span id="uploadStatusBadge" class="header-upload-status" style="display:none;">Uploads en cours</span>
         <div class="header-profile" id="headerProfile" style="display:none;">
             <img class="header-avatar" id="headerAvatar" src="" alt="" style="display:none;width:24px;height:24px;border-radius:50%;">
             <span class="header-level" id="headerLevel">Lvl 1</span>
@@ -257,7 +259,35 @@
             </table>
         </div>
     </div>
+
+    <!-- Upload history page -->
+    <div id="uploadsPage" class="bt-page" style="display:none;">
+        <div class="bt-header">
+            <h2 style="margin:0;font-size:1.2rem;">Upload History</h2>
+            <button class="btn btn-secondary" id="refreshUploadsBtn">Refresh</button>
+        </div>
+        <div class="bt-table-wrap">
+            <table class="bt-table">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Processed</th>
+                        <th>Skipped</th>
+                        <th>XP</th>
+                        <th>Uploaded</th>
+                        <th>Completed</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody id="uploadsTableBody">
+                    <tr><td colspan="8" class="bt-empty">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+<div id="toastContainer" class="toast-container"></div>
 
 <!-- Pseudo Modal (first time) -->
 <div class="modal-overlay" id="pseudoModal" style="display:none;">

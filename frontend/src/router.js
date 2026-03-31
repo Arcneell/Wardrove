@@ -1,6 +1,6 @@
 /**
  * Simple hash-based SPA router.
- * Routes: #map, #bluetooth, #cell, #leaderboard, #groups
+ * Routes: #map, #bluetooth, #cell, #leaderboard, #groups, #uploads
  */
 
 import { $ } from './utils.js';
@@ -8,12 +8,14 @@ import { $ } from './utils.js';
 const routes = {};
 let currentRoute = null;
 
-export function registerRoute(hash, { nav, page, onEnter }) {
-    routes[hash] = { nav, page, onEnter };
+export function registerRoute(hash, { nav, page, onEnter, onLeave }) {
+    routes[hash] = { nav, page, onEnter, onLeave };
 }
 
 export function navigate(hash) {
     if (hash === currentRoute) return;
+    const previous = routes[currentRoute];
+    if (previous && previous.onLeave) previous.onLeave();
     currentRoute = hash;
     window.location.hash = hash;
 

@@ -15,6 +15,7 @@ import { initBluetooth, loadBluetooth } from './pages/bluetooth.js';
 import { initCell, loadCellTowers } from './pages/cell.js';
 import { initLeaderboard, loadLeaderboard } from './pages/leaderboard.js';
 import { initGroups, loadGroups } from './pages/groups.js';
+import { onUploadsEnter, onUploadsLeave } from './pages/uploads.js';
 import { initUpload } from './components/upload.js';
 import { $ } from './utils.js';
 
@@ -54,6 +55,20 @@ registerRoute('#groups', {
     page: $('groupsPage'),
     onEnter: loadGroups,
 });
+registerRoute('#uploads', {
+    nav: $('navUploads'),
+    page: $('uploadsPage'),
+    onEnter: onUploadsEnter,
+    onLeave: onUploadsLeave,
+});
+
+// Header nav buttons
+$('navMap').addEventListener('click', () => navigate('#map'));
+$('navBt').addEventListener('click', () => navigate('#bluetooth'));
+$('navCell').addEventListener('click', () => navigate('#cell'));
+$('navLeaderboard').addEventListener('click', () => navigate('#leaderboard'));
+$('navGroups').addEventListener('click', () => navigate('#groups'));
+$('navUploads').addEventListener('click', () => navigate('#uploads'));
 
 // Export button
 $('exportBtn').addEventListener('click', () => {

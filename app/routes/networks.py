@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,7 +51,10 @@ async def list_wifi(
 
 
 @router.get("/wifi/{bssid}", response_model=WifiNetworkResponse)
-async def wifi_detail(bssid: str, db: AsyncSession = Depends(get_db)):
+async def wifi_detail(
+    bssid: str = Path(pattern=r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(WifiNetwork).where(WifiNetwork.bssid == bssid.upper())
     )
@@ -190,7 +193,10 @@ async def list_bt(
 
 
 @router.get("/bt/{mac}", response_model=BtNetworkResponse)
-async def bt_detail(mac: str, db: AsyncSession = Depends(get_db)):
+async def bt_detail(
+    mac: str = Path(pattern=r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(BtNetwork).where(BtNetwork.mac == mac.upper())
     )
