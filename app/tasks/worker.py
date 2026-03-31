@@ -34,24 +34,28 @@ def parse_redis_url(url: str) -> RedisSettings:
 async def on_startup(ctx: dict):
     """Called when the worker starts."""
     logger.info("Wardrove ARQ worker starting up")
-    stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=20)
-    async with async_session() as db:
-        result = await db.execute(
-            update(UploadTransaction)
-            .where(
-                UploadTransaction.status.in_(("pending", "parsing", "trilaterating", "indexing")),
-                UploadTransaction.uploaded_at < stale_cutoff,
+    try:
+        stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=20)
+        async with async_session() as db:
+            result = await db.execute(
+                update(UploadTransaction)
+                .where(
+                    UploadTransaction.status.in_(("pending", "parsing", "trilaterating", "indexing")),
+                    UploadTransaction.uploaded_at < stale_cutoff,
+                )
+                .values(
+                    status="error",
+                    status_message="Marked stale after worker restart/timeout",
+                    completed_at=datetime.now(timezone.utc),
+                )
+                .execution_options(synchronize_session=False)
             )
-            .values(
-                status="error",
-                status_message="Marked stale after worker restart/timeout",
-                completed_at=datetime.now(timezone.utc),
-            )
-            .execution_options(synchronize_session=False)
-        )
-        await db.commit()
-    if result.rowcount:
-        logger.warning("Recovered %s stale upload transaction(s)", result.rowcount)
+            await db.commit()
+        if result.rowcount:
+            logger.warning("Recovered %s stale upload transaction(s)", result.rowcount)
+    except Exception as e:
+        # Tables may not exist yet if app hasn't started first
+        logger.warning("Stale recovery skipped (DB not ready): %s", e)
 
 
 async def on_shutdown(ctx: dict):
