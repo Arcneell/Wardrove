@@ -1,18 +1,26 @@
+import { useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useMapStore } from '@/stores/mapStore'
 import { useMyProfile, useGlobalStats } from '@/api/hooks'
-import { XPBar } from '@/components/rpg/XPBar'
 import { formatNumber, encryptionColor } from '@/lib/format'
-import { Wifi, Bluetooth, Radio } from 'lucide-react'
 import { SearchField } from '@/components/ui/SearchField'
-import { useState } from 'react'
-import { BrandLogo } from '@/components/brand/BrandLogo'
+import { PanelTitle, ParchmentCard } from '@/components/parchment/Primitives'
+import { LevelRingParchment, XpShimmerBar } from '@/components/parchment/RpgBits'
+import { PlumeWifi, PlumeBluetooth, PlumeRadio } from '@/components/icons/PlumeIcons'
+import { rankTitle } from '@/lib/xp'
+import type { ReactNode } from 'react'
 
 export function Sidebar() {
   const { isAuthenticated } = useAuthStore()
   const {
-    mineOnly, toggleMineOnly, showBtLayer, toggleBtLayer,
-    showCellLayer, toggleCellLayer, encryptionFilters, setEncryptionFilter,
+    mineOnly,
+    toggleMineOnly,
+    showBtLayer,
+    toggleBtLayer,
+    showCellLayer,
+    toggleCellLayer,
+    encryptionFilters,
+    setEncryptionFilter,
   } = useMapStore()
   const { data: profile } = useMyProfile(isAuthenticated)
   const { data: stats } = useGlobalStats()
@@ -22,129 +30,300 @@ export function Sidebar() {
   return (
     <aside
       id="map-tools-sidebar"
-      className="leather-tabs w-[300px] flex-shrink-0 overflow-y-auto flex flex-col gap-4 p-5 h-full min-h-0"
       aria-label="Map tools and filters"
+      className="sidebar-root"
+      style={{
+        width: 'var(--sidebar-w)',
+        flexShrink: 0,
+        height: '100%',
+        minHeight: 0,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        padding: 16,
+        background:
+          'linear-gradient(180deg, rgba(232,220,192,0.45) 0%, rgba(217,201,163,0.45) 100%)',
+        borderRight: '2px solid var(--color-ink)',
+      }}
     >
-      <div className="flex items-center gap-2 min-w-0 pb-3 mb-1 border-b border-black/20">
-        <BrandLogo className="w-8 h-8" />
-        <span className="font-display font-bold text-base text-parchment/95 truncate">Wardrove</span>
+      <div style={{ textAlign: 'center' }}>
+        <h2
+          className="font-display"
+          style={{
+            fontSize: 15,
+            fontWeight: 900,
+            letterSpacing: '0.22em',
+            color: 'var(--color-ink)',
+            margin: 0,
+          }}
+        >
+          THEATRE OF OPERATIONS
+        </h2>
+        <div style={{ fontStyle: 'italic', fontSize: 11, color: 'var(--color-sepia)' }}>
+          drawn by the scout's own hand
+        </div>
       </div>
 
-        {/* Profile */}
-        {isAuthenticated && profile && (
-          <section className="rulebook-frame p-4 bg-parchment space-y-3">
-            <h2 className="font-display text-center text-xs font-bold tracking-[0.15em] uppercase text-wax-red border-b border-black/20 pb-2">
-              Your seal
-            </h2>
-            <div className="flex items-center gap-3">
-              {profile.avatar_url && (
-                <img src={profile.avatar_url} alt="" className="w-10 h-10 border-2 border-ink object-cover shrink-0" style={{ boxShadow: '2px 2px 0 0 #1a1a1a' }} />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="font-display font-semibold text-sm text-ink truncate">{profile.username}</p>
-                <p className="font-display text-xs text-sepia">{profile.rank}</p>
+      {isAuthenticated && profile && (
+        <Panel title="Your Seal">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <LevelRingParchment
+              level={profile.level}
+              xpProgress={profile.xp_progress ?? 0}
+              size={110}
+            />
+            <div style={{ textAlign: 'center' }}>
+              <div
+                className="font-display"
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'var(--color-ink)',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                {profile.username}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontStyle: 'italic',
+                  color: 'var(--color-sepia)',
+                }}
+              >
+                {profile.rank ?? rankTitle(profile.level).name}
               </div>
             </div>
-            <XPBar xp={profile.xp} level={profile.level} xpProgress={profile.xp_progress} xpCurrent={profile.xp_current_level} xpNext={profile.xp_next_level} compact />
-          </section>
-        )}
-
-        {/* World tally */}
-        {stats && (
-          <section className="rulebook-frame p-4 bg-parchment space-y-3">
-            <h2 className="font-display text-center text-xs font-bold tracking-[0.15em] uppercase text-wax-red border-b border-black/20 pb-2">
-              World tally
-            </h2>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <LedgerStat icon={<Wifi size={16} strokeWidth={1.75} />} value={stats.total_wifi} label="WiFi" color="text-wifi" />
-              <LedgerStat icon={<Bluetooth size={16} strokeWidth={1.75} />} value={stats.total_bt} label="BT" color="text-bt" />
-              <LedgerStat icon={<Radio size={16} strokeWidth={1.75} />} value={stats.total_cell} label="Cell" color="text-cell" />
+            <div style={{ width: '100%' }}>
+              <XpShimmerBar progress={profile.xp_progress ?? 0} />
+              <div
+                className="font-mono"
+                style={{
+                  fontSize: 10,
+                  color: 'var(--color-sepia)',
+                  marginTop: 4,
+                  textAlign: 'center',
+                }}
+              >
+                {formatNumber(profile.xp)} XP
+              </div>
             </div>
-          </section>
-        )}
+          </div>
+        </Panel>
+      )}
 
-        {/* Encryption */}
-        <section className="rulebook-frame p-4 bg-parchment space-y-3">
-          <h2 className="font-display text-center text-xs font-bold tracking-[0.15em] uppercase text-wax-red border-b border-black/20 pb-2">
-            Encryption sigils
-          </h2>
-          <div className="flex flex-col gap-1.5">
-            {encryptions.map((enc) => (
-              <label key={enc} className="flex items-center gap-2 text-sm cursor-pointer group font-mono text-ink">
+      {stats && (
+        <Panel title="World Tally">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <TallyStat
+              icon={<PlumeWifi size={22} color="var(--color-layer-wifi)" />}
+              value={stats.total_wifi}
+              label="WiFi"
+              color="var(--color-layer-wifi)"
+            />
+            <TallyStat
+              icon={<PlumeBluetooth size={22} color="var(--color-layer-bt)" />}
+              value={stats.total_bt}
+              label="BT"
+              color="var(--color-layer-bt)"
+            />
+            <TallyStat
+              icon={<PlumeRadio size={22} color="var(--color-layer-cell)" />}
+              value={stats.total_cell}
+              label="Cell"
+              color="var(--color-layer-cell)"
+            />
+          </div>
+        </Panel>
+      )}
+
+      <Panel title="Encryption Sigils">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {encryptions.map((enc) => {
+            const checked = encryptionFilters[enc] ?? true
+            return (
+              <label
+                key={enc}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--color-ink)',
+                  cursor: 'pointer',
+                }}
+              >
                 <input
                   type="checkbox"
-                  checked={encryptionFilters[enc] ?? true}
+                  checked={checked}
                   onChange={(e) => setEncryptionFilter(enc, e.target.checked)}
-                  className="w-3.5 h-3.5 accent-wax-red border-2 border-ink shrink-0"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    accentColor: 'var(--color-wax-red)',
+                    border: '2px solid var(--color-ink)',
+                  }}
                 />
-                <span className="w-2.5 h-2.5 shrink-0 border border-ink" style={{ backgroundColor: encryptionColor(enc) }} />
-                <span className="text-sepia group-hover:text-ink transition-colors">{enc}</span>
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    background: encryptionColor(enc),
+                    border: '1px solid var(--color-ink)',
+                  }}
+                />
+                <span style={{ color: checked ? 'var(--color-ink)' : 'var(--color-sepia-muted)' }}>
+                  {enc}
+                </span>
               </label>
+            )
+          })}
+        </div>
+      </Panel>
+
+      <Panel title="Layers">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {isAuthenticated && (
+            <LayerToggle active={mineOnly} onClick={toggleMineOnly} label="My networks only" />
+          )}
+          <LayerToggle active={showBtLayer} onClick={toggleBtLayer} label="Bluetooth devices" />
+          <LayerToggle active={showCellLayer} onClick={toggleCellLayer} label="Cell towers" />
+        </div>
+      </Panel>
+
+      <Panel title="SSID Search">
+        <SearchField
+          value={ssidSearch}
+          onChange={setSsidSearch}
+          placeholder="Network name..."
+        />
+      </Panel>
+
+      {stats?.top_ssids && stats.top_ssids.length > 0 && (
+        <Panel title="Most Sighted">
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {stats.top_ssids.slice(0, 8).map((s, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '4px 0',
+                  borderBottom:
+                    i < stats.top_ssids.length - 1
+                      ? '1px dotted rgba(26,20,16,0.2)'
+                      : 'none',
+                  fontSize: 12,
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <span
+                  style={{
+                    color: 'var(--color-ink)',
+                    maxWidth: 180,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {s.ssid || '<hidden>'}
+                </span>
+                <span style={{ color: 'var(--color-sepia)' }}>
+                  {formatNumber(s.count)}
+                </span>
+              </div>
             ))}
           </div>
-        </section>
-
-        {/* Layers */}
-        <section className="rulebook-frame p-4 bg-parchment space-y-3">
-          <h2 className="font-display text-center text-xs font-bold tracking-[0.15em] uppercase text-wax-red border-b border-black/20 pb-2">
-            Layers
-          </h2>
-          <div className="flex flex-col gap-1">
-            {isAuthenticated && <LayerToggle active={mineOnly} onClick={toggleMineOnly} label="My networks only" />}
-            <LayerToggle active={showBtLayer} onClick={toggleBtLayer} label="Bluetooth devices" />
-            <LayerToggle active={showCellLayer} onClick={toggleCellLayer} label="Cell towers" />
-          </div>
-        </section>
-
-        {/* Search */}
-        <section className="rulebook-frame p-4 bg-parchment space-y-3">
-          <h2 className="font-display text-center text-xs font-bold tracking-[0.15em] uppercase text-wax-red border-b border-black/20 pb-2">
-            SSID search
-          </h2>
-          <SearchField value={ssidSearch} onChange={setSsidSearch} placeholder="Network name..." />
-        </section>
-
-        {/* Top SSIDs */}
-        {stats?.top_ssids && stats.top_ssids.length > 0 && (
-          <section className="rulebook-frame p-4 bg-parchment space-y-3">
-            <h2 className="font-display text-center text-xs font-bold tracking-[0.15em] uppercase text-wax-red border-b border-black/20 pb-2">
-              Top SSIDs
-            </h2>
-            <div className="flex flex-col">
-              {stats.top_ssids.slice(0, 8).map((s, i) => (
-                <div key={i} className="flex justify-between items-center text-xs py-1.5 border-b border-ink/10 last:border-0 font-mono">
-                  <span className="text-ink truncate max-w-[160px]">{s.ssid || '<hidden>'}</span>
-                  <span className="text-sepia flex-shrink-0 ml-2 tabular-nums">{formatNumber(s.count)}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        </Panel>
+      )}
     </aside>
   )
 }
 
-function LedgerStat({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
+function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <span className={`${color}`}>{icon}</span>
-      <span className={`font-mono font-bold text-base tabular-nums ${color}`}>{formatNumber(value)}</span>
-      <span className="text-[10px] text-sepia uppercase tracking-wider">{label}</span>
+    <ParchmentCard raw padding={14}>
+      <div style={{ marginBottom: 10 }}>
+        <PanelTitle>{title}</PanelTitle>
+      </div>
+      {children}
+    </ParchmentCard>
+  )
+}
+
+function TallyStat({
+  icon,
+  value,
+  label,
+  color,
+}: {
+  icon: ReactNode
+  value: number
+  label: string
+  color: string
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
+      }}
+    >
+      <span style={{ color }}>{icon}</span>
+      <span
+        className="font-mono"
+        style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-ink)' }}
+      >
+        {formatNumber(value)}
+      </span>
+      <span
+        className="font-display"
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.15em',
+          color: 'var(--color-sepia)',
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </span>
     </div>
   )
 }
 
-function LayerToggle({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function LayerToggle({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 text-sm font-mono transition-colors border ${
-        active
-          ? 'bg-[#ebe4d0] text-wax-red border-ink'
-          : 'text-sepia hover:text-ink border-transparent hover:border-ink/30'
-      }`}
-      style={active ? { boxShadow: '2px 2px 0 0 #1a1a1a' } : undefined}
+      aria-pressed={active}
+      style={{
+        width: '100%',
+        textAlign: 'left',
+        padding: '6px 10px',
+        fontSize: 11,
+        fontFamily: 'var(--font-display)',
+        letterSpacing: '0.08em',
+        background: active ? 'var(--color-parchment-dark)' : 'transparent',
+        color: active ? 'var(--color-wax-red)' : 'var(--color-sepia)',
+        border: active ? '1.5px solid var(--color-ink)' : '1.5px solid transparent',
+        boxShadow: active ? '2px 2px 0 0 rgba(26,20,16,0.85)' : 'none',
+        cursor: 'pointer',
+        transition: 'color 0.15s, background 0.15s',
+      }}
     >
       {label}
     </button>

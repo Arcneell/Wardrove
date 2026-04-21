@@ -39,38 +39,59 @@ def _parse_datetime(dt_str: str) -> datetime | None:
 
 class WigleCsvParser(BaseParser):
     def parse(self, content: bytes, filename: str) -> list[NetworkObservation]:
-        text = content.decode("utf-8", errors="replace")
-        lines = text.strip().splitlines()
-        if len(lines) < 3:
+        # utf-8-sig strips the BOM that Windows/Excel often prepends
+        text = content.decode("utf-8-sig", errors="replace")
+        lines = text.splitlines()
+        if len(lines) < 2:
             return []
 
-        header_line = lines[1]
-        data_lines = lines[2:]
+        # Find the header row dynamically: WiGLE files usually start with a
+        # preamble line like "WigleWifi-1.4,appRelease=..." but the column
+        # header can be on line 0, 1, or even further down depending on tool.
+        header_index = -1
+        for i, line in enumerate(lines[:10]):
+            lower = line.lower()
+            if "currentlatitude" in lower and "currentlongitude" in lower:
+                header_index = i
+                break
+        if header_index < 0:
+            return []
 
-        reader = csv.DictReader(io.StringIO(header_line + "\n" + "\n".join(data_lines)))
+        reader = csv.DictReader(io.StringIO("\n".join(lines[header_index:])))
+        if not reader.fieldnames:
+            return []
+        # Case-insensitive column map: lowercased name → actual header
+        col = {name.lower().strip(): name for name in reader.fieldnames}
+
+        def get(row: dict, key: str, default: str = "") -> str:
+            actual = col.get(key.lower())
+            if actual is None:
+                return default
+            val = row.get(actual)
+            return default if val is None else str(val)
 
         observations = []
         for row in reader:
             try:
-                lat = float(row.get("CurrentLatitude", 0) or 0)
-                lon = float(row.get("CurrentLongitude", 0) or 0)
+                lat = float(get(row, "CurrentLatitude", "0") or 0)
+                lon = float(get(row, "CurrentLongitude", "0") or 0)
                 if lat == 0.0 and lon == 0.0:
                     continue
 
-                bssid = (row.get("MAC", "") or "").strip().upper()
+                bssid = get(row, "MAC").strip().upper()
                 if not bssid:
                     continue
 
-                ssid = (row.get("SSID", "") or "").strip()
-                auth_mode = (row.get("AuthMode", "") or "").strip()
+                ssid = get(row, "SSID").strip()
+                auth_mode = get(row, "AuthMode").strip()
                 encryption = classify_encryption(auth_mode)
-                channel = int(row.get("Channel", 0) or 0)
-                frequency = int(row.get("Frequency", 0) or 0)
-                rssi = int(row.get("RSSI", -100) or -100)
-                first_seen = (row.get("FirstSeen", "") or "").strip()
-                device_type = (row.get("Type", "WIFI") or "WIFI").strip().upper()
-                altitude = float(row.get("AltitudeMeters", 0) or 0) or None
-                accuracy = float(row.get("AccuracyMeters", 0) or 0) or None
+                channel = int(get(row, "Channel", "0") or 0)
+                frequency = int(get(row, "Frequency", "0") or 0)
+                rssi = int(get(row, "RSSI", "-100") or -100)
+                first_seen = get(row, "FirstSeen").strip()
+                device_type = (get(row, "Type", "WIFI") or "WIFI").strip().upper()
+                altitude = float(get(row, "AltitudeMeters", "0") or 0) or None
+                accuracy = float(get(row, "AccuracyMeters", "0") or 0) or None
 
                 # Map device type to our network types
                 if device_type in ("BT", "BLE"):

@@ -69,21 +69,21 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className={`rulebook-frame bg-parchment ${wide ? 'w-full max-w-2xl' : 'w-full max-w-md'} max-h-[85vh] overflow-hidden flex flex-col`}
+            className={`rulebook-frame bg-parchment ${wide ? 'w-full max-w-2xl' : 'w-full max-w-lg'} max-h-[85vh] overflow-hidden flex flex-col`}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-ink gap-3 bg-[#ebe4d0]">
-              <h2 id={titleId} className="font-display font-bold text-lg text-wax-red tracking-wide">{title}</h2>
+            <div className="flex items-center justify-between px-8 py-5 border-b-2 border-ink gap-3 bg-[#ebe4d0]">
+              <h2 id={titleId} className="font-display font-bold text-xl text-wax-red tracking-wide">{title}</h2>
               <button
                 type="button"
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center font-display text-xl text-ink hover:text-wax-red transition-colors border border-transparent hover:border-ink"
+                className="w-9 h-9 flex items-center justify-center font-display text-2xl text-ink hover:text-wax-red transition-colors border border-transparent hover:border-ink"
                 aria-label="Close"
               >
                 &times;
               </button>
             </div>
-            <div className="px-6 py-6 overflow-y-auto flex-1 text-ink text-sm">
+            <div className="px-8 py-7 overflow-y-auto flex-1 text-ink text-base">
               {children}
             </div>
           </motion.div>

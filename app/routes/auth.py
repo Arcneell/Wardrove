@@ -31,6 +31,50 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # --- OAuth login/callback ---
 
 
+@router.get("/providers")
+async def providers():
+    """Tell the frontend which login methods are enabled for this install."""
+    return {
+        "github": bool(settings.github_client_id and settings.github_client_secret),
+        "demo": bool(settings.demo_mode),
+    }
+
+
+@router.post("/demo")
+async def demo_login(response: Response, db: AsyncSession = Depends(get_db)):
+    """One-click sign-in as the seeded `demo` user.
+
+    Only active when DEMO_MODE=true. Issues the same JWT + refresh cookie
+    pair as the GitHub callback, so the frontend can treat it identically.
+    """
+    if not settings.demo_mode:
+        raise HTTPException(status_code=404, detail="Demo login not enabled")
+
+    result = await db.execute(select(User).where(User.username == "demo"))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Demo account not seeded yet — run `docker compose exec app python -m app.scripts.seed_demo`.",
+        )
+
+    user.last_login = datetime.now(timezone.utc)
+    await db.commit()
+
+    access_token, expires_in = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=settings.app_url.startswith("https"),
+        samesite="lax",
+        max_age=settings.jwt_refresh_token_expire_days * 24 * 3600,
+        path="/",
+    )
+    return TokenResponse(access_token=access_token, expires_in=expires_in)
+
+
 @router.get("/login/{provider}")
 async def login(provider: str):
     """Initiate OAuth login. Returns redirect URL for the frontend to navigate to."""

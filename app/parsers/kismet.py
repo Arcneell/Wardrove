@@ -109,7 +109,7 @@ class KismetCsvParser(BaseParser):
     """Parse Kismet .csv files."""
 
     def parse(self, content: bytes, filename: str) -> list[NetworkObservation]:
-        text = content.decode("utf-8", errors="replace")
+        text = content.decode("utf-8-sig", errors="replace")
         observations = []
 
         reader = csv.DictReader(io.StringIO(text), delimiter=";")

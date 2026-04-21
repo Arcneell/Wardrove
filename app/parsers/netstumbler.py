@@ -70,7 +70,7 @@ class NetStumblerNs1Parser(BaseParser):
     def _try_text_parse(self, content: bytes) -> list[NetworkObservation]:
         """Fallback: try to parse as NetStumbler text export."""
         try:
-            text = content.decode('utf-8', errors='replace')
+            text = content.decode('utf-8-sig', errors='replace')
         except Exception:
             return []
         parser = NetStumblerTextParser()
@@ -87,7 +87,7 @@ class NetStumblerTextParser(BaseParser):
     def parse(self, content: bytes, filename: str) -> list[NetworkObservation]:
         observations = []
         try:
-            text = content.decode('utf-8', errors='replace')
+            text = content.decode('utf-8-sig', errors='replace')
         except Exception:
             return []
 

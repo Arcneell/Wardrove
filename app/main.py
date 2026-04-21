@@ -126,6 +126,13 @@ app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="as
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
+    # Never shadow API paths — if an /api/v1/... request falls through here,
+    # it means the API route didn't match (typo, method mismatch, trailing slash).
+    # Return a real 404 instead of serving index.html, which was breaking
+    # fetch('/api/v1/stats/') by returning HTML instead of JSON.
+    if full_path.startswith("api/"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not Found")
     file_path = STATIC_DIR / full_path
     if full_path and file_path.is_file():
         return FileResponse(file_path)

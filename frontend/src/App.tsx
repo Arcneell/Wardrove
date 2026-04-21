@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { HUD } from '@/components/layout/HUD'
 import { ToastContainer } from '@/components/rpg/AchievementToast'
 import { LoginModal } from '@/components/ui/LoginModal'
@@ -7,32 +7,63 @@ import { UploadModal } from '@/components/ui/UploadModal'
 import { useAuthStore } from '@/stores/authStore'
 import { refreshToken, apiFetch } from '@/api/client'
 import type { User } from '@/api/types'
-import { Loader2 } from 'lucide-react'
 
-const MapPage = lazy(() => import('@/pages/MapPage').then(m => ({ default: m.MapPage })))
-const LeaderboardPage = lazy(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
-const ArmoryPage = lazy(() => import('@/pages/ArmoryPage').then(m => ({ default: m.ArmoryPage })))
-const StatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
-const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
-const MyQuarters = lazy(() => import('@/pages/MyQuarters').then(m => ({ default: m.MyQuarters })))
-const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })))
+const MapPage = lazy(() => import('@/pages/MapPage').then((m) => ({ default: m.MapPage })))
+const LeaderboardPage = lazy(() =>
+  import('@/pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
+)
+const ArmoryPage = lazy(() =>
+  import('@/pages/ArmoryPage').then((m) => ({ default: m.ArmoryPage })),
+)
+const StatsPage = lazy(() =>
+  import('@/pages/StatsPage').then((m) => ({ default: m.StatsPage })),
+)
+const ProfilePage = lazy(() =>
+  import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })),
+)
+const MyQuarters = lazy(() =>
+  import('@/pages/MyQuarters').then((m) => ({ default: m.MyQuarters })),
+)
+const TermsPage = lazy(() =>
+  import('@/pages/TermsPage').then((m) => ({ default: m.TermsPage })),
+)
 
 function PageLoader() {
   return (
-    <div className="flex-1 w-full flex items-center justify-center min-h-[12rem] p-12">
-      <div className="text-center">
-        <Loader2 size={36} strokeWidth={1.5} className="text-wax-red animate-spin mx-auto mb-4" />
-        <p className="font-display text-base text-gray-800 tracking-wide leading-relaxed">Unfurling the scroll…</p>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+      }}
+    >
+      <div
+        style={{
+          textAlign: 'center',
+          fontFamily: 'var(--font-body)',
+          fontStyle: 'italic',
+          color: 'var(--color-sepia)',
+        }}
+      >
+        Unfurling the scroll…
       </div>
     </div>
   )
 }
 
 function AppRoutes() {
+  const location = useLocation()
+  // The main element is re-keyed on pathname so page-turn-in replays.
   return (
-    <Suspense fallback={<PageLoader />}>
-      <div className="flex min-h-0 w-full flex-1 flex-col">
-        <Routes>
+    <main
+      key={location.pathname}
+      className="anim-page parchment-bg"
+      style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <Routes location={location}>
           <Route path="/" element={<MapPage />} />
           <Route path="/armory" element={<ArmoryPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
@@ -41,8 +72,8 @@ function AppRoutes() {
           <Route path="/quarters" element={<MyQuarters />} />
           <Route path="/terms" element={<TermsPage />} />
         </Routes>
-      </div>
-    </Suspense>
+      </Suspense>
+    </main>
   )
 }
 
@@ -66,7 +97,9 @@ function AuthInitializer() {
             const data = await res.json()
             setToken(data.access_token, data.expires_in)
           }
-        } catch {}
+        } catch {
+          /* noop — user can retry sign-in */
+        }
       } else {
         await refreshToken()
       }
@@ -76,7 +109,9 @@ function AuthInitializer() {
         try {
           const user = await apiFetch<User>('/auth/me')
           setUser(user)
-        } catch {}
+        } catch {
+          /* noop — unauthenticated flow */
+        }
       }
     }
 
@@ -90,13 +125,32 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthInitializer />
-      {/* Table en bois : marge généreuse, grimoire centré */}
-      <div className="h-full min-h-0 flex flex-col p-8 box-border">
-        <div className="grimoire-sheet flex w-full min-w-0 max-w-full flex-1 flex-col overflow-hidden rounded-[2px] border-[3px] border-double border-ink mx-auto">
+      {/* Table surface; the grimoire sits on top and slides in on navigation. */}
+      <div
+        style={{
+          height: '100%',
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 'clamp(8px, 1.6vw, 24px)',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          className="grimoire-sheet"
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            minWidth: 0,
+            maxWidth: '100%',
+            border: '3px double var(--color-ink)',
+            overflow: 'hidden',
+          }}
+        >
           <HUD />
-          <main className="flex-1 min-h-0 w-full flex flex-col overflow-y-auto overflow-x-hidden">
-            <AppRoutes />
-          </main>
+          <AppRoutes />
         </div>
       </div>
       <LoginModal />

@@ -1,23 +1,37 @@
-import { useGlobalStats, useChannelStats, useManufacturerStats, useCountryStats, useTopSSIDs } from '@/api/hooks'
+import {
+  useGlobalStats,
+  useChannelStats,
+  useManufacturerStats,
+  useCountryStats,
+  useTopSSIDs,
+} from '@/api/hooks'
 import { formatNumber } from '@/lib/format'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { Wifi, Bluetooth, Radio, Users, Upload, Shield, BarChart3, Globe, Cpu } from 'lucide-react'
+import {
+  PageHeader,
+  ParchmentCard,
+  PanelTitle,
+  BigStat,
+} from '@/components/parchment/Primitives'
+import {
+  ParchmentPieChart,
+  HorizontalBar,
+} from '@/components/parchment/RpgBits'
+import {
+  PlumeWifi,
+  PlumeBluetooth,
+  PlumeRadio,
+  PlumeUpload,
+  PlumeShield,
+} from '@/components/icons/PlumeIcons'
 
 const ENC_ORDER = ['WPA3', 'WPA2', 'WPA', 'WEP', 'Open', 'Unknown']
 const ENC_COLORS: Record<string, string> = {
-  WPA3: '#1a4d2e', WPA2: '#1e4a6b', WPA: '#8b4513', WEP: '#9b2c2c', Open: '#5c5348', Unknown: '#5c5348',
-}
-
-const tooltipStyle = {
-  contentStyle: {
-    background: '#fdf5e6',
-    border: '2px solid #1a1a1a',
-    borderRadius: '0',
-    fontSize: '11px',
-    fontFamily: 'Courier Prime, ui-monospace, monospace',
-    color: '#1a1a1a',
-    boxShadow: '4px 4px 0 0 #1a1a1a',
-  },
+  WPA3: '#3d5a2a',
+  WPA2: '#4a6b5a',
+  WPA: '#b8860b',
+  WEP: '#8b1a1a',
+  Open: '#6b4820',
+  Unknown: '#8a6c3e',
 }
 
 export function StatsPage() {
@@ -30,167 +44,400 @@ export function StatsPage() {
   const encData = stats
     ? ENC_ORDER.map((enc) => ({
         name: enc,
-        value: stats.by_encryption[enc] ?? 0,
+        value: stats.by_encryption?.[enc] ?? 0,
         color: ENC_COLORS[enc],
       })).filter((d) => d.value > 0)
     : []
 
-  const tallyRows = stats
-    ? [
-        { icon: <Wifi size={22} strokeWidth={1.75} />, label: 'Wi-Fi networks', value: stats.total_wifi, color: 'text-wifi' },
-        { icon: <Bluetooth size={22} strokeWidth={1.75} />, label: 'Bluetooth devices', value: stats.total_bt, color: 'text-bt' },
-        { icon: <Radio size={22} strokeWidth={1.75} />, label: 'Cell towers', value: stats.total_cell, color: 'text-cell' },
-        { icon: <Users size={22} strokeWidth={1.75} />, label: 'Operators', value: stats.total_users, color: 'text-epic' },
-        { icon: <Upload size={22} strokeWidth={1.75} />, label: 'Uploads filed', value: stats.total_uploads, color: 'text-ink' },
-      ]
-    : []
+  const encTotal = encData.reduce((s, d) => s + d.value, 0) || 1
+
+  const channelMax = channels?.reduce((m, c) => Math.max(m, c.count), 0) ?? 0
+  const manufacturerMax = manufacturers?.[0]?.count ?? 1
+  const ssidMax = topSSIDs?.[0]?.count ?? 1
 
   return (
-    <div className="flex-1 min-h-0">
-      <div className="max-w-6xl mx-auto px-8 py-8 space-y-6">
-        <header className="text-center space-y-2">
-          <h1 className="font-display text-3xl font-bold text-wax-red tracking-wide">World Chronicles</h1>
-          <p className="text-base text-sepia">Tallies from every wardriver — sigils, channels, and names in the ledger.</p>
-        </header>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 'var(--page-pad-y) var(--page-pad-x)' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+        <PageHeader
+          title="The World"
+          subtitle="an atlas of the wireless realm"
+        />
 
         {stats && (
-          <section className="rulebook-frame bg-parchment p-6">
-            <h2 className="font-display text-center text-base font-bold text-ink border-b border-black/20 pb-3 mb-3">
-              Grand Totals
-            </h2>
-            <div className="grid grid-cols-5 gap-6">
-              {tallyRows.map((row) => (
-                <div key={row.label} className="text-center space-y-1.5">
-                  <span className="text-sepia flex justify-center">{row.icon}</span>
-                  <p className={`font-mono text-xl font-bold tabular-nums ${row.color}`}>{formatNumber(row.value)}</p>
-                  <p className="text-xs text-sepia">{row.label}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: 14,
+              marginBottom: 24,
+            }}
+          >
+            <BigStat
+              label="Networks"
+              value={formatNumber(stats.total_wifi)}
+              icon={<PlumeWifi size={28} />}
+            />
+            <BigStat
+              label="Bluetooth"
+              value={formatNumber(stats.total_bt)}
+              icon={<PlumeBluetooth size={28} />}
+            />
+            <BigStat
+              label="Towers"
+              value={formatNumber(stats.total_cell)}
+              icon={<PlumeRadio size={28} />}
+            />
+            <BigStat
+              label="Chroniclers"
+              value={formatNumber(stats.total_users)}
+              icon={<PlumeShield size={28} />}
+            />
+            <BigStat
+              label="Scrolls"
+              value={formatNumber(stats.total_uploads)}
+              icon={<PlumeUpload size={28} />}
+            />
+          </div>
         )}
 
-        <div className="grid grid-cols-2 gap-7">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 20,
+          }}
+        >
           {encData.length > 0 && (
-            <GrimoirePanel title="Encryption distribution" icon={<Shield size={18} strokeWidth={1.75} />}>
-              <div className="h-60 mb-4 w-full" aria-label="Encryption distribution chart" role="img">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={encData} cx="50%" cy="50%" innerRadius={52} outerRadius={86} paddingAngle={2} dataKey="value" stroke="#1a1a1a" strokeWidth={1}>
-                      {encData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                    </Pie>
-                    <Tooltip {...tooltipStyle} formatter={(value: number) => formatNumber(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
+            <ParchmentCard padding={20}>
+              <PanelTitle>Encryption Sigils</PanelTitle>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 24,
+                  marginTop: 16,
+                  alignItems: 'center',
+                }}
+              >
+                <ParchmentPieChart
+                  data={encData}
+                  size={180}
+                  centerLabel="TOTAL"
+                  centerValue={formatNumber(encTotal)}
+                />
+                <ul
+                  style={{
+                    flex: 1,
+                    listStyle: 'none',
+                    margin: 0,
+                    padding: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  {encData.map((d) => (
+                    <li
+                      key={d.name}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        fontSize: 12,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          background: d.color,
+                          border: '1px solid var(--color-ink)',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ flex: 1, color: 'var(--color-ink)' }}>
+                        {d.name}
+                      </span>
+                      <span
+                        className="font-mono"
+                        style={{ color: 'var(--color-sepia)' }}
+                      >
+                        {formatNumber(d.value)}
+                      </span>
+                      <span
+                        className="font-mono"
+                        style={{
+                          color: 'var(--color-gold-tarnish)',
+                          minWidth: 44,
+                          textAlign: 'right',
+                        }}
+                      >
+                        {((d.value / encTotal) * 100).toFixed(1)}%
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="flex flex-wrap gap-x-6 gap-y-4 justify-center list-none w-full">
-                {encData.map((d) => (
-                  <li key={d.name} className="flex items-center gap-2 text-base font-mono leading-relaxed">
-                    <span className="w-3 h-3 border border-ink shrink-0" style={{ background: d.color }} />
-                    <span className="text-gray-800">{d.name}</span>
-                    <span className="text-gray-900 font-semibold tabular-nums">{formatNumber(d.value)}</span>
-                  </li>
-                ))}
-              </ul>
-            </GrimoirePanel>
+            </ParchmentCard>
           )}
 
           {channels && channels.length > 0 && (
-            <GrimoirePanel title="Channel spread" icon={<BarChart3 size={18} strokeWidth={1.75} />}>
-              <div className="h-72 w-full" aria-label="Wi-Fi channel spread chart" role="img">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={channels.slice(0, 20)}>
-                    <XAxis dataKey="channel" tick={{ fill: '#4a3b32', fontSize: 9, fontFamily: 'Courier Prime, monospace' }} />
-                    <YAxis tick={{ fill: '#4a3b32', fontSize: 9, fontFamily: 'Courier Prime, monospace' }} />
-                    <Tooltip {...tooltipStyle} formatter={(value: number) => formatNumber(value)} />
-                    <Bar dataKey="count" fill="#1e4a6b" stroke="#1a1a1a" strokeWidth={1} radius={[0, 0, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+            <ParchmentCard padding={20}>
+              <PanelTitle>Channel Spread</PanelTitle>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  gap: 3,
+                  height: 180,
+                  marginTop: 16,
+                  padding: '0 4px',
+                }}
+                role="img"
+                aria-label="WiFi channel distribution"
+              >
+                {channels.slice(0, 20).map((c) => {
+                  const is5 = c.channel >= 36
+                  const h = Math.max(4, (c.count / (channelMax || 1)) * 160)
+                  return (
+                    <div
+                      key={c.channel}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <span
+                        className="font-mono"
+                        style={{ fontSize: 8, color: 'var(--color-sepia)' }}
+                      >
+                        {formatNumber(c.count)}
+                      </span>
+                      <div
+                        style={{
+                          width: '100%',
+                          height: h,
+                          background: is5 ? 'var(--color-gold-tarnish)' : 'var(--color-wax-red)',
+                          border: '1px solid var(--color-ink)',
+                        }}
+                      />
+                      <span
+                        className="font-mono"
+                        style={{ fontSize: 8, color: 'var(--color-ink)' }}
+                      >
+                        {c.channel}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
-            </GrimoirePanel>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 18,
+                  marginTop: 8,
+                  fontSize: 10,
+                  color: 'var(--color-sepia)',
+                  fontFamily: 'var(--font-display)',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 8,
+                      height: 8,
+                      background: 'var(--color-wax-red)',
+                      marginRight: 6,
+                      verticalAlign: 'middle',
+                    }}
+                  />
+                  2.4 GHz
+                </span>
+                <span>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 8,
+                      height: 8,
+                      background: 'var(--color-gold-tarnish)',
+                      marginRight: 6,
+                      verticalAlign: 'middle',
+                    }}
+                  />
+                  5 GHz
+                </span>
+              </div>
+            </ParchmentCard>
           )}
 
           {manufacturers && manufacturers.length > 0 && (
-            <GrimoirePanel title="Top manufacturers" icon={<Cpu size={18} strokeWidth={1.75} />}>
-              <ul className="flex w-full list-none flex-col overflow-y-auto max-h-80">
-                {manufacturers.slice(0, 15).map((m, i) => (
-                  <li
-                    key={i}
-                    className="ledger-line flex w-full items-center justify-center gap-4 py-5 px-2 text-center first:pt-2 flex-row flex-wrap"
-                  >
-                    <span className="w-8 shrink-0 text-right font-mono text-sm tabular-nums text-gray-700">{i + 1}</span>
-                    <div className="h-3 w-full max-w-[18rem] border-2 border-ink bg-parchment overflow-hidden">
-                      <div className="h-full bg-ink/85" style={{ width: `${(m.count / manufacturers[0].count) * 100}%` }} />
-                    </div>
-                    <span className="max-w-[18rem] shrink truncate font-display text-sm leading-relaxed text-gray-900">{m.manufacturer}</span>
-                    <span className="shrink-0 font-mono text-sm tabular-nums text-gray-800">{formatNumber(m.count)}</span>
-                  </li>
+            <ParchmentCard padding={20}>
+              <PanelTitle>Top Manufacturers</PanelTitle>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  marginTop: 14,
+                  maxHeight: 280,
+                  overflowY: 'auto',
+                }}
+              >
+                {manufacturers.slice(0, 12).map((m, i) => (
+                  <HorizontalBar
+                    key={`${m.manufacturer}-${i}`}
+                    label={m.manufacturer || '<unknown>'}
+                    value={m.count}
+                    max={manufacturerMax}
+                  />
                 ))}
-              </ul>
-            </GrimoirePanel>
+              </div>
+            </ParchmentCard>
           )}
 
           {topSSIDs && topSSIDs.length > 0 && (
-            <GrimoirePanel title="Most spoken SSIDs" icon={<Wifi size={18} strokeWidth={1.75} />}>
-              <ol className="marker:text-gold-tarnish flex max-h-80 list-inside list-decimal flex-col overflow-y-auto marker:font-display">
-                {topSSIDs.map((s, i) => (
+            <ParchmentCard padding={20}>
+              <PanelTitle>Most Spoken SSIDs</PanelTitle>
+              <ol
+                style={{
+                  listStyle: 'none',
+                  margin: '14px 0 0',
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  maxHeight: 280,
+                  overflowY: 'auto',
+                }}
+              >
+                {topSSIDs.slice(0, 14).map((s, i) => (
                   <li
                     key={i}
-                    className="ledger-line flex w-full items-center justify-center gap-8 py-5 px-2 pl-2 text-center -ml-2"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '24px 1fr auto',
+                      gap: 10,
+                      padding: '6px 0',
+                      borderBottom:
+                        i < topSSIDs.length - 1
+                          ? '1px dotted rgba(26,20,16,0.2)'
+                          : 'none',
+                      fontSize: 12,
+                    }}
                   >
-                    <span className="min-w-0 max-w-full font-mono text-base leading-relaxed text-gray-900 break-words">{s.ssid || '<hidden>'}</span>
-                    <span className="shrink-0 font-mono text-base tabular-nums text-gray-800">{formatNumber(s.count)}</span>
+                    <span
+                      className="font-mono"
+                      style={{
+                        color: 'var(--color-gold-tarnish)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span
+                      style={{
+                        color: 'var(--color-ink)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {s.ssid || '<hidden>'}
+                    </span>
+                    <span
+                      className="font-mono"
+                      style={{ color: 'var(--color-sepia)' }}
+                    >
+                      {formatNumber(s.count)}
+                    </span>
                   </li>
                 ))}
               </ol>
-            </GrimoirePanel>
+            </ParchmentCard>
           )}
 
           {countries && countries.length > 0 && (
-            <GrimoirePanel title="Realms by MCC" icon={<Globe size={18} strokeWidth={1.75} />} className="col-span-2">
-              <ul className="grid max-h-80 w-full list-none grid-cols-2 gap-x-10 overflow-y-auto">
-                {countries.slice(0, 15).map((c, i) => (
-                  <li
-                    key={i}
-                    className="ledger-line flex flex-col items-center gap-2 py-5 px-2 text-center"
+            <ParchmentCard padding={20} style={{ gridColumn: 'span 2' }}>
+              <PanelTitle>Realms by MCC</PanelTitle>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '8px 20px',
+                  marginTop: 14,
+                  maxHeight: 260,
+                  overflowY: 'auto',
+                }}
+              >
+                {countries.slice(0, 24).map((c, i) => (
+                  <div
+                    key={`${c.mcc}-${i}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '4px 0',
+                      borderBottom: '1px dotted rgba(26,20,16,0.15)',
+                      fontSize: 12,
+                    }}
                   >
-                    <div className="flex flex-wrap items-baseline justify-center gap-2">
-                      <span className="w-7 shrink-0 text-right font-mono text-xs tabular-nums text-gray-700">{i + 1}</span>
-                      <span className="max-w-none truncate font-display text-sm leading-relaxed text-gray-900">{c.country}</span>
-                      <span className="shrink-0 font-mono text-[10px] text-gray-600">({c.mcc})</span>
-                    </div>
-                    <span className="font-mono text-sm tabular-nums text-gray-800">{formatNumber(c.count)}</span>
-                  </li>
+                    <span
+                      className="font-mono"
+                      style={{ color: 'var(--color-sepia)', minWidth: 24 }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span
+                      style={{
+                        flex: 1,
+                        color: 'var(--color-ink)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {c.country}
+                    </span>
+                    <span
+                      className="font-mono"
+                      style={{ fontSize: 10, color: 'var(--color-sepia-muted)' }}
+                    >
+                      ({c.mcc})
+                    </span>
+                    <span
+                      className="font-mono"
+                      style={{ color: 'var(--color-sepia)' }}
+                    >
+                      {formatNumber(c.count)}
+                    </span>
+                  </div>
                 ))}
-              </ul>
-            </GrimoirePanel>
+              </div>
+            </ParchmentCard>
           )}
+
+          {!topSSIDs?.length && !manufacturers?.length && (
+            <ParchmentCard padding={24} style={{ gridColumn: 'span 2', textAlign: 'center' }}>
+              <p
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontStyle: 'italic',
+                  color: 'var(--color-sepia)',
+                }}
+              >
+                The scouts have not yet returned…
+              </p>
+            </ParchmentCard>
+          )}
+
+          {ssidMax === 1 && null}
         </div>
       </div>
     </div>
-  )
-}
-
-function GrimoirePanel({
-  title,
-  icon,
-  children,
-  className = '',
-}: {
-  title: string
-  icon: React.ReactNode
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <section className={`rulebook-frame bg-parchment p-10 w-full ${className}`}>
-      <header className="text-center space-y-4 border-b border-black/30 pb-8 mb-10 w-full">
-        <div className="flex justify-center text-wax-red" aria-hidden>{icon}</div>
-        <h2 className="font-display text-xl font-bold text-wax-red tracking-wide leading-loose px-4">
-          {title}
-        </h2>
-      </header>
-      <div className="w-full text-center text-base leading-relaxed text-gray-900">{children}</div>
-    </section>
   )
 }

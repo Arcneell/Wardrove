@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     # Worker
     worker_max_jobs: int = 10
 
+    # Demo mode — when true, a seeded "demo" account can sign in via a
+    # one-click endpoint without OAuth. Safe to leave on for self-hosted
+    # single-user installs; turn OFF for multi-tenant / public deployments.
+    demo_mode: bool = False
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

@@ -69,13 +69,13 @@ def detect_format(filename: str, content: bytes) -> str:
 
     # Try decoding header for text-based formats
     try:
-        header = content[:500].decode('utf-8', errors='replace')
+        header = content[:500].decode('utf-8-sig', errors='replace')
     except Exception:
         header = ""
 
     header_2k = ""
     try:
-        header_2k = content[:2000].decode('utf-8', errors='replace')
+        header_2k = content[:2000].decode('utf-8-sig', errors='replace')
     except Exception:
         pass
 

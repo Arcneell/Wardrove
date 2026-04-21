@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.database import get_db
+from app.database import async_session, get_db
 from app.middleware.auth import get_current_user
 from app.middleware.rate_limit import get_redis, get_redis_binary
 from app.models.transaction import UploadTransaction
@@ -146,20 +146,24 @@ async def stream_transaction_status(
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
+    def _terminal_payload(tx: UploadTransaction) -> str:
+        return json.dumps({
+            "status": tx.status,
+            "message": tx.status_message or ("Complete" if tx.status == "done" else "Failed"),
+            "wifi_count": tx.wifi_count,
+            "bt_count": tx.bt_count,
+            "ble_count": tx.ble_count,
+            "cell_count": tx.cell_count,
+            "new_networks": tx.new_networks,
+            "updated_networks": tx.updated_networks,
+            "skipped_networks": tx.skipped_networks,
+            "xp_earned": tx.xp_earned,
+        })
+
     # If already completed, return final status immediately
     if transaction.status in ("done", "error"):
         async def single_event():
-            data = json.dumps({
-                "status": transaction.status,
-                "message": transaction.status_message or "Complete",
-                "wifi_count": transaction.wifi_count,
-                "bt_count": transaction.bt_count,
-                "ble_count": transaction.ble_count,
-                "cell_count": transaction.cell_count,
-                "new_networks": transaction.new_networks,
-                "xp_earned": transaction.xp_earned,
-            })
-            yield f"data: {data}\n\n"
+            yield f"data: {_terminal_payload(transaction)}\n\n"
 
         return StreamingResponse(single_event(), media_type="text/event-stream")
 
@@ -170,11 +174,12 @@ async def stream_transaction_status(
         await pubsub.subscribe(channel)
 
         try:
-            # Send current status first
+            # Send current status first so the client never shows a blank UI
             yield f"data: {json.dumps({'status': transaction.status, 'message': 'Connected'})}\n\n"
 
             timeout = 300  # 5 minutes max
             start = asyncio.get_event_loop().time()
+            poll_counter = 0
 
             while (asyncio.get_event_loop().time() - start) < timeout:
                 message = await pubsub.get_message(
@@ -190,9 +195,25 @@ async def stream_transaction_status(
                     try:
                         parsed = json.loads(data)
                         if parsed.get("status") in ("done", "error"):
-                            break
+                            return
                     except json.JSONDecodeError:
                         pass
+
+                # Every ~3s fall back to the DB in case the worker published
+                # its completion before we subscribed (fast small files).
+                poll_counter += 1
+                if poll_counter >= 3:
+                    poll_counter = 0
+                    async with async_session() as poll_db:
+                        result = await poll_db.execute(
+                            select(UploadTransaction).where(
+                                UploadTransaction.id == transaction_id
+                            )
+                        )
+                        tx = result.scalar_one_or_none()
+                        if tx and tx.status in ("done", "error"):
+                            yield f"data: {_terminal_payload(tx)}\n\n"
+                            return
 
             yield f"data: {json.dumps({'status': 'timeout', 'message': 'Stream timed out'})}\n\n"
         finally:

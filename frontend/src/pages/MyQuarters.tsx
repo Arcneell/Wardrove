@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useMyProfile, useUserBadges, useUploadHistory } from '@/api/hooks'
-import { LevelRing } from '@/components/rpg/LevelRing'
-import { XPBar } from '@/components/rpg/XPBar'
 import { BadgeCard } from '@/components/rpg/BadgeCard'
 import { formatNumber, formatDate, timeAgo } from '@/lib/format'
 import { getCategoryLabel } from '@/lib/badges'
 import { authFetch, apiFetch } from '@/api/client'
 import type { ApiToken } from '@/api/types'
 import {
-  Shield, Award, ScrollText, Settings, Wifi, Bluetooth, Radio, Upload,
-  Key, Plus, Trash2, Copy, CheckCircle, XCircle, Loader2, Clock,
-} from 'lucide-react'
+  PageHeader,
+  ParchmentCard,
+  PanelTitle,
+  RibbonTabs,
+  InkPill,
+  SheetStat,
+} from '@/components/parchment/Primitives'
+import { LevelRingParchment, XpShimmerBar } from '@/components/parchment/RpgBits'
+import { PlumeShield, PlumeWifi, PlumeBluetooth, PlumeRadio, PlumeUpload } from '@/components/icons/PlumeIcons'
 
 type Tab = 'overview' | 'badges' | 'uploads' | 'settings'
 
@@ -24,16 +28,41 @@ export function MyQuarters() {
 
   if (!user || !profile) {
     return (
-      <div className="flex-1 flex items-center justify-center p-16">
-        <div className="rulebook-frame bg-parchment px-14 py-16 max-w-md text-center space-y-6">
-          <Shield size={44} strokeWidth={1.5} className="mx-auto text-wax-red" />
-          <h1 className="font-display text-xl font-bold text-ink leading-loose border-b border-black/30 pb-6">
-            Quarters locked
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 40,
+        }}
+      >
+        <ParchmentCard padding={32} style={{ maxWidth: 400, textAlign: 'center' }}>
+          <PlumeShield size={44} color="var(--color-wax-red)" />
+          <h1
+            className="font-display"
+            style={{
+              fontSize: 20,
+              fontWeight: 700,
+              color: 'var(--color-ink)',
+              marginTop: 12,
+              letterSpacing: '0.08em',
+            }}
+          >
+            Quarters Locked
           </h1>
-          <p className="text-sm font-mono text-sepia leading-loose">
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              color: 'var(--color-sepia)',
+              marginTop: 10,
+              fontSize: 13,
+            }}
+          >
             Sign the ledger to open your personal hall.
           </p>
-        </div>
+        </ParchmentCard>
       </div>
     )
   }
@@ -51,140 +80,246 @@ export function MyQuarters() {
     level: profile.level,
   }
 
-  const statRows = [
-    { icon: <Wifi size={20} strokeWidth={1.75} />, label: 'Wi-Fi charted', value: profile.wifi_discovered, color: 'text-wifi' },
-    { icon: <Bluetooth size={20} strokeWidth={1.75} />, label: 'Bluetooth', value: profile.bt_discovered, color: 'text-bt' },
-    { icon: <Radio size={20} strokeWidth={1.75} />, label: 'Cell towers', value: profile.cell_discovered, color: 'text-cell' },
-    { icon: <Upload size={20} strokeWidth={1.75} />, label: 'Uploads', value: profile.total_uploads, color: 'text-ink' },
-  ]
-
-  const tabs: Array<{ key: Tab; icon: React.ReactNode; label: string }> = [
-    { key: 'overview', icon: <Shield size={18} strokeWidth={1.75} />, label: 'Overview' },
-    { key: 'badges', icon: <Award size={18} strokeWidth={1.75} />, label: `Badges (${earnedCount}/${totalCount})` },
-    { key: 'uploads', icon: <ScrollText size={18} strokeWidth={1.75} />, label: 'Quest log' },
-    { key: 'settings', icon: <Settings size={18} strokeWidth={1.75} />, label: 'Seals & keys' },
-  ]
-
   return (
-    <div className="flex-1 min-h-0">
-      <div className="max-w-5xl mx-auto px-8 py-8 space-y-6">
-        <header className="text-center space-y-2">
-          <h1 className="font-display text-3xl font-bold text-wax-red tracking-wide">My Quarters</h1>
-          <p className="text-base text-sepia">Your chapter house — rank, spoils, quests, and API seals.</p>
-        </header>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 'var(--page-pad-y) var(--page-pad-x)' }}>
+      <div style={{ maxWidth: 1120, margin: '0 auto', width: '100%' }}>
+        <PageHeader
+          title="My Quarters"
+          subtitle={`${profile.rank} — "${user.username}"`}
+        />
 
-        <nav className="flex flex-wrap gap-3 justify-center" aria-label="Quarters sections" role="tablist">
-          {tabs.map((t) => (
-            <button key={t.key} type="button" onClick={() => setTab(t.key)}
-              role="tab"
-              aria-selected={tab === t.key}
-              aria-pressed={tab === t.key}
-              className={`btn-parchment text-sm ${tab === t.key ? 'active' : ''}`}
-            >
-              {t.icon} {t.label}
-            </button>
-          ))}
-        </nav>
+        <div style={{ maxWidth: 700, margin: '0 auto 20px' }}>
+          <RibbonTabs<Tab>
+            tabs={[
+              { id: 'overview', label: 'Overview' },
+              { id: 'badges', label: `Grimoire (${earnedCount}/${totalCount})` },
+              { id: 'uploads', label: 'Scrolls' },
+              { id: 'settings', label: 'Seals & Keys' },
+            ]}
+            active={tab}
+            onChange={setTab}
+          />
+        </div>
 
         {tab === 'overview' && (
-          <div className="space-y-6">
-            <section className="rulebook-frame bg-parchment p-6">
-              <div className="flex flex-row items-center gap-14">
-                <div className="shrink-0">
-                  <LevelRing level={profile.level} xp={profile.xp} xpProgress={profile.xp_progress} size={150} avatarUrl={user.avatar_url} />
-                </div>
-                <div className="flex-1 text-left space-y-8 w-full min-w-0">
-                  <div className="space-y-3">
-                    <h2 className="font-display text-2xl font-bold text-ink border-b border-black/25 pb-4 block leading-loose">
-                      {user.username}
-                    </h2>
-                    {profile.global_rank > 0 && (
-                      <p className="text-sm font-mono text-gold-tarnish leading-loose">
-                        World rank #{profile.global_rank}
-                      </p>
-                    )}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '320px 1fr',
+              gap: 24,
+            }}
+          >
+            <ParchmentCard padding={24}>
+              <div style={{ textAlign: 'center' }}>
+                {user.avatar_url && (
+                  <img
+                    src={user.avatar_url}
+                    alt=""
+                    style={{
+                      width: 84,
+                      height: 84,
+                      border: '3px double var(--color-ink)',
+                      boxShadow: 'var(--shadow-stamp)',
+                      objectFit: 'cover',
+                      margin: '0 auto 12px',
+                    }}
+                  />
+                )}
+                <LevelRingParchment
+                  level={profile.level}
+                  xpProgress={profile.xp_progress ?? 0}
+                  size={150}
+                  rank={profile.rank}
+                />
+                <div style={{ marginTop: 16 }}>
+                  <XpShimmerBar progress={profile.xp_progress ?? 0} />
+                  <div
+                    className="font-mono"
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--color-sepia)',
+                      marginTop: 6,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {formatNumber(profile.xp_current_level ?? 0)} / {formatNumber(profile.xp_next_level ?? 0)} XP
                   </div>
-                  <div className="max-w-xl mx-0 pt-2">
-                    <XPBar xp={profile.xp} level={profile.level} xpProgress={profile.xp_progress} xpCurrent={profile.xp_current_level} xpNext={profile.xp_next_level} />
-                  </div>
                 </div>
+                {profile.global_rank > 0 && (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 11,
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-gold-tarnish)',
+                    }}
+                  >
+                    World Rank #{profile.global_rank}
+                  </div>
+                )}
               </div>
-            </section>
 
-            <section className="rulebook-frame bg-parchment p-6">
-              <h2 className="font-display text-center text-xl font-bold text-ink leading-loose border-b border-black/30 pb-8 mb-2">
-                Field counts
-              </h2>
-              <ul className="list-none flex flex-col">
-                {statRows.map((row) => (
-                  <li
-                    key={row.label}
-                    className="ledger-line flex flex-row items-center justify-between gap-4 py-8 px-2 first:pt-6"
-                  >
-                    <div className="flex items-center gap-5 min-w-0">
-                      <span className={`shrink-0 ${row.color} [&_svg]:text-ink`}>{row.icon}</span>
-                      <span className="font-display text-base text-sepia leading-loose">{row.label}</span>
-                    </div>
-                    <span className={`font-mono font-bold text-xl tabular-nums shrink-0 ${row.color}`}>
-                      {formatNumber(row.value)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+              <div
+                style={{
+                  marginTop: 20,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 8,
+                }}
+              >
+                <SheetStat label="Trophies" value={earnedCount} />
+                <SheetStat label="World Pos" value={profile.global_rank > 0 ? `#${profile.global_rank}` : '—'} />
+              </div>
+            </ParchmentCard>
 
-            {earnedCount > 0 && (
-              <section className="rulebook-frame bg-parchment p-6 space-y-8">
-                <header className="flex flex-row items-end justify-between gap-4 border-b border-black/30 pb-8">
-                  <h2 className="font-display text-xl font-bold text-wax-red text-left leading-loose">
-                    Recent seals
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setTab('badges')}
-                    className="text-sm font-mono text-gold-tarnish hover:text-wax-red border-b border-dashed border-transparent hover:border-ink transition-colors shrink-0"
-                  >
-                    View full trophy room
-                  </button>
-                </header>
-                <div className="grid grid-cols-2 gap-10">
-                  {badges?.filter((b) => b.earned).slice(-4).reverse().map((badge) => (
-                    <BadgeCard key={badge.id} badge={badge} />
-                  ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <ParchmentCard padding={20}>
+                <PanelTitle>Chronicles</PanelTitle>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: 10,
+                    marginTop: 14,
+                  }}
+                >
+                  <StatCell icon={<PlumeWifi size={24} color="var(--color-layer-wifi)" />} label="WiFi" value={profile.wifi_discovered} />
+                  <StatCell icon={<PlumeBluetooth size={24} color="var(--color-layer-bt)" />} label="Bluetooth" value={profile.bt_discovered} />
+                  <StatCell icon={<PlumeRadio size={24} color="var(--color-layer-cell)" />} label="Towers" value={profile.cell_discovered} />
+                  <StatCell icon={<PlumeUpload size={24} color="var(--color-sepia)" />} label="Scrolls" value={profile.total_uploads} />
                 </div>
-              </section>
-            )}
+              </ParchmentCard>
+
+              {earnedCount > 0 && badges && (
+                <ParchmentCard padding={20}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 14,
+                    }}
+                  >
+                    <PanelTitle align="left">Recently Inscribed</PanelTitle>
+                    <button
+                      type="button"
+                      onClick={() => setTab('badges')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-gold-tarnish)',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 11,
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      View all ›
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: 14,
+                      marginTop: 10,
+                    }}
+                  >
+                    {badges
+                      .filter((b) => b.earned)
+                      .slice(-4)
+                      .reverse()
+                      .map((badge) => (
+                        <BadgeCard key={badge.id} badge={badge} />
+                      ))}
+                  </div>
+                </ParchmentCard>
+              )}
+            </div>
           </div>
         )}
 
         {tab === 'badges' && (
-          <div className="space-y-14">
-            <section className="rulebook-frame bg-parchment p-6 text-center space-y-8">
-              <h2 className="font-display text-5xl font-bold text-gold-tarnish tabular-nums leading-loose border-b border-black/25 pb-8 inline-block min-w-[12rem]">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <ParchmentCard padding={24} style={{ textAlign: 'center' }}>
+              <div
+                className="font-display"
+                style={{
+                  fontSize: 44,
+                  fontWeight: 700,
+                  color: 'var(--color-gold-tarnish)',
+                  letterSpacing: '0.04em',
+                }}
+              >
                 {earnedCount} / {totalCount}
-              </h2>
-              <p className="text-sm text-sepia font-mono leading-loose">Badges collected</p>
-              <div className="h-4 border-[3px] border-ink bg-parchment overflow-hidden max-w-md mx-auto" style={{ boxShadow: '3px 3px 0 0 #1a1a1a' }}>
-                <div
-                  className="h-full bg-ink border-r-2 border-gold-tarnish/40 transition-all duration-500"
-                  style={{ width: `${totalCount > 0 ? (earnedCount / totalCount) * 100 : 0}%` }}
-                />
               </div>
-            </section>
+              <div
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontStyle: 'italic',
+                  fontSize: 12,
+                  color: 'var(--color-sepia)',
+                  marginBottom: 12,
+                }}
+              >
+                seals inscribed
+              </div>
+              <div style={{ maxWidth: 360, margin: '0 auto' }}>
+                <XpShimmerBar progress={totalCount > 0 ? earnedCount / totalCount : 0} />
+              </div>
+            </ParchmentCard>
 
             {Object.entries(badgesByCategory).map(([category, categoryBadges]) => (
-              <section key={category} className="space-y-8">
-                <header className="text-center space-y-3 border-b border-black/20 pb-6">
-                  <h3 className="font-display text-sm font-bold uppercase tracking-[0.25em] text-gold-tarnish leading-loose">
+              <section key={category}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    marginBottom: 14,
+                    paddingBottom: 8,
+                    borderBottom: '1px solid rgba(26,20,16,0.25)',
+                  }}
+                >
+                  <h3
+                    className="font-display"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-gold-tarnish)',
+                      margin: 0,
+                    }}
+                  >
                     {getCategoryLabel(category)}
                   </h3>
-                  <p className="font-mono text-xs text-sepia tabular-nums">
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontStyle: 'italic',
+                      color: 'var(--color-sepia)',
+                      marginTop: 2,
+                    }}
+                  >
                     {categoryBadges.filter((b) => b.earned).length} / {categoryBadges.length} earned
-                  </p>
-                </header>
-                <div className="grid grid-cols-3 gap-10">
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                    gap: 18,
+                  }}
+                >
                   {categoryBadges.map((badge) => (
-                    <BadgeCard key={badge.id} badge={badge} showProgress currentValue={userValues[badge.criteria_type] ?? 0} />
+                    <BadgeCard
+                      key={badge.id}
+                      badge={badge}
+                      showProgress
+                      currentValue={userValues[badge.criteria_type] ?? 0}
+                    />
                   ))}
                 </div>
               </section>
@@ -193,47 +328,118 @@ export function MyQuarters() {
         )}
 
         {tab === 'uploads' && (
-          <div className="space-y-6">
+          <div>
             {!uploads || uploads.length === 0 ? (
-              <div className="rulebook-frame bg-parchment px-10 py-20 text-center space-y-6">
-                <ScrollText size={40} strokeWidth={1.5} className="mx-auto text-muted" />
-                <h2 className="font-display text-xl font-bold text-ink leading-loose border-b border-black/25 pb-6 max-w-sm mx-auto">
-                  No quests yet
+              <ParchmentCard padding={32} style={{ textAlign: 'center' }}>
+                <PlumeUpload size={40} color="var(--color-sepia-muted)" />
+                <h2
+                  className="font-display"
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: 'var(--color-ink)',
+                    marginTop: 10,
+                    letterSpacing: '0.1em',
+                  }}
+                >
+                  No Scrolls Yet
                 </h2>
-                <p className="text-base font-mono text-sepia leading-loose max-w-md mx-auto">
-                  Upload your first capture to ink the first line of the quest log.
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontStyle: 'italic',
+                    fontSize: 13,
+                    color: 'var(--color-sepia)',
+                    marginTop: 8,
+                  }}
+                >
+                  Upload your first capture to ink the opening line of the quest log.
                 </p>
-              </div>
+              </ParchmentCard>
             ) : (
-              <ul className="list-none flex flex-col gap-6">
-                {uploads.map((tx) => (
-                  <li
-                    key={tx.id}
-                    className="rulebook-frame bg-parchment p-10 flex flex-row items-center gap-10"
-                  >
-                    <div className="flex items-start gap-5 min-w-0 flex-1">
-                      <StatusIcon status={tx.status} />
-                      <div className="min-w-0 space-y-3">
-                        <p className="font-mono text-base font-semibold text-ink truncate leading-relaxed">{tx.filename}</p>
-                        <p className="text-sm text-sepia font-sans leading-loose">
+              <ParchmentCard padding={0}>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 13,
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        background: 'var(--color-parchment-dark)',
+                        borderBottom: '2px solid var(--color-ink)',
+                      }}
+                    >
+                      {['Scroll', 'Format', 'When', 'WiFi', 'BT', 'Cell', 'XP', 'Status'].map((c) => (
+                        <th
+                          key={c}
+                          style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: '0.15em',
+                            textTransform: 'uppercase',
+                            color: 'var(--color-wax-red)',
+                            padding: '12px 14px',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {c}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uploads.map((tx, i) => (
+                      <tr
+                        key={tx.id}
+                        style={{
+                          background: i % 2 === 1 ? 'rgba(139,69,19,0.05)' : 'transparent',
+                          borderBottom: '1px dotted rgba(26,20,16,0.25)',
+                        }}
+                      >
+                        <td style={{ padding: '10px 14px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ color: 'var(--color-ink)', fontWeight: 700 }}>
+                            {tx.filename}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          {tx.file_format ? <InkPill>{tx.file_format}</InkPill> : <span style={{ color: 'var(--color-sepia-muted)' }}>—</span>}
+                        </td>
+                        <td style={{ padding: '10px 14px', fontStyle: 'italic', color: 'var(--color-sepia)' }}>
                           {timeAgo(tx.uploaded_at)}
-                          {tx.file_format && <span className="ml-2 opacity-80">{tx.file_format}</span>}
-                        </p>
-                      </div>
-                    </div>
-                    {tx.status === 'done' && (
-                      <div className="flex flex-wrap gap-10 justify-end shrink-0">
-                        <MiniStat label="New" value={tx.new_networks} color="text-ink" />
-                        <MiniStat label="Updated" value={tx.updated_networks} color="text-wifi" />
-                        <MiniStat label="XP" value={tx.xp_earned} color="text-gold-tarnish" />
-                      </div>
-                    )}
-                    {tx.status === 'error' && (
-                      <p className="text-sm text-wax-red font-mono leading-loose shrink-0">{tx.status_message ?? 'Failed'}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-layer-wifi)' }}>
+                            {formatNumber(tx.wifi_count)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-layer-bt)' }}>
+                            {formatNumber(tx.bt_count + (tx.ble_count ?? 0))}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-layer-cell)' }}>
+                            {formatNumber(tx.cell_count)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-gold-tarnish)', fontWeight: 700 }}>
+                            +{formatNumber(tx.xp_earned)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <StatusBadge status={tx.status} message={tx.status_message} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ParchmentCard>
             )}
           </div>
         )}
@@ -241,6 +447,80 @@ export function MyQuarters() {
         {tab === 'settings' && <SettingsTab />}
       </div>
     </div>
+  )
+}
+
+function StatCell({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: number
+}) {
+  return (
+    <div
+      style={{
+        border: '1px solid rgba(26,20,16,0.35)',
+        background: 'rgba(232,220,192,0.5)',
+        padding: 12,
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
+        {icon}
+      </div>
+      <div
+        className="font-mono"
+        style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-ink)' }}
+      >
+        {formatNumber(value)}
+      </div>
+      <div
+        className="font-display"
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.15em',
+          color: 'var(--color-sepia)',
+          textTransform: 'uppercase',
+          marginTop: 2,
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  )
+}
+
+function StatusBadge({ status, message }: { status: string; message: string | null }) {
+  const map: Record<string, { bg: string; color: string; label: string }> = {
+    done: { bg: 'rgba(61,90,42,0.15)', color: '#3d5a2a', label: 'Done' },
+    error: { bg: 'rgba(139,26,26,0.12)', color: '#8b1a1a', label: 'Error' },
+    pending: { bg: 'rgba(107,72,32,0.12)', color: '#6b4820', label: 'Queued' },
+    parsing: { bg: 'rgba(42,74,107,0.12)', color: '#2a4a6b', label: 'Parsing' },
+    trilaterating: { bg: 'rgba(42,74,107,0.12)', color: '#2a4a6b', label: 'Locating' },
+    indexing: { bg: 'rgba(42,74,107,0.12)', color: '#2a4a6b', label: 'Indexing' },
+  }
+  const cfg = map[status] ?? map.pending
+  return (
+    <span
+      title={message ?? undefined}
+      style={{
+        display: 'inline-block',
+        padding: '3px 10px',
+        border: `1px solid ${cfg.color}`,
+        color: cfg.color,
+        background: cfg.bg,
+        fontSize: 10,
+        fontFamily: 'var(--font-display)',
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+      }}
+    >
+      {cfg.label}
+    </span>
   )
 }
 
@@ -254,10 +534,14 @@ function SettingsTab() {
     try {
       const res = await authFetch('/auth/tokens')
       if (res.ok) setTokens(await res.json())
-    } catch {}
+    } catch {
+      /* noop — errors surfaced when user tries to operate */
+    }
   }
 
-  useEffect(() => { loadTokens() }, [])
+  useEffect(() => {
+    loadTokens()
+  }, [])
 
   const createToken = async () => {
     if (!newTokenName.trim()) return
@@ -271,125 +555,184 @@ function SettingsTab() {
       setNewToken(data.token ?? null)
       setNewTokenName('')
       loadTokens()
-    } catch {} finally { setLoading(false) }
+    } catch {
+      /* toast shown by caller eventually */
+    } finally {
+      setLoading(false)
+    }
   }
 
   const revokeToken = async (id: number) => {
     try {
       await authFetch(`/auth/tokens/${id}`, { method: 'DELETE' })
       loadTokens()
-    } catch {}
+    } catch {
+      /* noop */
+    }
   }
 
   return (
-    <section className="rulebook-frame bg-parchment p-6 space-y-10">
-      <header className="text-center space-y-4 border-b border-black/30 pb-8">
-        <div className="flex justify-center text-wax-red">
-          <Key size={22} strokeWidth={1.75} />
-        </div>
-        <h2 className="font-display text-2xl font-bold text-wax-red tracking-wide leading-loose px-4">
-          API tokens
-        </h2>
-        <p className="text-base text-gray-800 font-sans leading-relaxed max-w-lg mx-auto">
-          Keys cut for scripts and rigs. Copy once; the vault forgets the plain text.
-        </p>
-      </header>
+    <ParchmentCard padding={24}>
+      <PanelTitle>Seals & Keys</PanelTitle>
+      <p
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontStyle: 'italic',
+          color: 'var(--color-sepia)',
+          fontSize: 13,
+          marginTop: 12,
+          textAlign: 'center',
+        }}
+      >
+        Keys cut for scripts and rigs. Copy once — the vault forgets the plain text.
+      </p>
 
-      <div className="flex flex-row gap-5">
-        <label htmlFor="new-token-name" className="sr-only">Token name</label>
+      <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
         <input
           id="new-token-name"
           value={newTokenName}
           onChange={(e) => setNewTokenName(e.target.value)}
           placeholder="Name for this key…"
-          className="flex-1 min-w-0 px-5 py-4 border-2 border-ink bg-[#fdf8ed] text-base font-mono text-gray-900 placeholder:text-gray-500 focus:outline-none focus:border-wax-red leading-relaxed"
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            border: '2px solid var(--color-ink)',
+            background: 'var(--color-parchment-light)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 13,
+            color: 'var(--color-ink)',
+            boxShadow: 'var(--shadow-stamp)',
+          }}
         />
         <button
           type="button"
+          className="btn-wax"
           onClick={createToken}
           disabled={!newTokenName.trim() || loading}
-          className="flex items-center justify-center gap-2 px-8 py-3 min-h-[3.25rem] border-2 border-ink bg-[#ebe4d0] text-base font-display font-bold text-gray-900 hover:text-wax-red disabled:opacity-25 transition-colors shrink-0 leading-relaxed"
-          style={{ boxShadow: '3px 3px 0 0 #1a1a1a' }}
         >
-          <Plus size={18} strokeWidth={1.75} /> Mint key
+          Mint Key
         </button>
       </div>
 
       {newToken && (
-        <div className="border-2 border-dashed border-ink bg-[#fdf8ed] p-8 space-y-4">
-          <p className="text-sm font-display font-semibold text-wax-red leading-loose text-left">
-            Copy now — it will not be shown again.
-          </p>
-          <div className="flex flex-row items-center gap-3">
-            <code className="flex-1 font-mono text-sm text-ink bg-[#ebe4d0] px-4 py-3 border border-ink/30 break-all leading-relaxed">
+        <div
+          style={{
+            marginTop: 18,
+            padding: 14,
+            border: '2px dashed var(--color-ink)',
+            background: 'var(--color-parchment)',
+          }}
+        >
+          <div
+            className="font-display"
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'var(--color-wax-red)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              marginBottom: 6,
+            }}
+          >
+            Copy now — it will not be shown again
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <code
+              style={{
+                flex: 1,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                padding: 10,
+                background: 'var(--color-parchment-dark)',
+                border: '1px solid var(--color-ink)',
+                wordBreak: 'break-all',
+              }}
+            >
               {newToken}
             </code>
             <button
               type="button"
               onClick={() => navigator.clipboard.writeText(newToken)}
-              className="p-4 border-2 border-transparent text-sepia hover:text-ink hover:border-dashed hover:border-ink shrink-0"
-              aria-label="Copy token"
+              className="btn-parchment"
+              style={{ padding: '6px 10px' }}
             >
-              <Copy size={18} strokeWidth={1.75} />
+              Copy
             </button>
           </div>
         </div>
       )}
 
-      <ul className="list-none flex flex-col gap-4">
+      <ul
+        style={{
+          listStyle: 'none',
+          margin: '18px 0 0',
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
         {tokens.length === 0 ? (
-          <li className="text-center text-sm text-muted py-10 font-mono leading-loose">No keys forged yet.</li>
+          <li
+            style={{
+              textAlign: 'center',
+              padding: 20,
+              color: 'var(--color-sepia)',
+              fontStyle: 'italic',
+            }}
+          >
+            No keys forged yet.
+          </li>
         ) : (
           tokens.map((t) => (
             <li
               key={t.id}
-              className="ledger-line flex flex-row items-center justify-between gap-4 py-6 px-4 border-2 border-ink/30 bg-[#fdf8ed]"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                border: '1px solid rgba(26,20,16,0.35)',
+                background: 'var(--color-parchment)',
+              }}
             >
-              <div className="space-y-2 min-w-0">
-                <p className={`text-base font-display font-semibold leading-relaxed ${t.revoked ? 'text-muted line-through' : 'text-ink'}`}>
+              <div>
+                <div
+                  className="font-display"
+                  style={{
+                    fontWeight: 700,
+                    color: t.revoked ? 'var(--color-sepia-muted)' : 'var(--color-ink)',
+                    textDecoration: t.revoked ? 'line-through' : undefined,
+                  }}
+                >
                   {t.name}
-                </p>
-                <p className="text-xs text-sepia font-mono leading-loose">Forged {formatDate(t.created_at)}</p>
+                </div>
+                <div
+                  className="font-mono"
+                  style={{ fontSize: 10, color: 'var(--color-sepia)', marginTop: 2 }}
+                >
+                  Forged {formatDate(t.created_at)}
+                </div>
               </div>
               {t.revoked ? (
-                <span className="text-xs text-muted font-mono">Revoked</span>
+                <span style={{ fontSize: 11, color: 'var(--color-sepia-muted)', fontStyle: 'italic' }}>
+                  Revoked
+                </span>
               ) : (
                 <button
                   type="button"
                   onClick={() => revokeToken(t.id)}
-                  className="text-wax-red/90 hover:text-wax-red transition-colors p-2 self-center"
-                  title="Revoke"
+                  className="btn-parchment"
+                  style={{ padding: '4px 10px' }}
                 >
-                  <Trash2 size={18} strokeWidth={1.75} />
+                  Revoke
                 </button>
               )}
             </li>
           ))
         )}
       </ul>
-    </section>
-  )
-}
-
-function StatusIcon({ status }: { status: string }) {
-  switch (status) {
-    case 'done':
-      return <CheckCircle size={22} strokeWidth={1.75} className="text-ink flex-shrink-0" />
-    case 'error':
-      return <XCircle size={22} strokeWidth={1.75} className="text-wax-red flex-shrink-0" />
-    case 'pending':
-      return <Clock size={22} strokeWidth={1.75} className="text-sepia flex-shrink-0" />
-    default:
-      return <Loader2 size={22} strokeWidth={1.75} className="text-ink flex-shrink-0 animate-spin" />
-  }
-}
-
-function MiniStat({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="text-right space-y-1">
-      <p className={`font-mono text-sm font-semibold tabular-nums ${color}`}>{formatNumber(value)}</p>
-      <p className="text-[10px] text-sepia uppercase tracking-wider leading-loose">{label}</p>
-    </div>
+    </ParchmentCard>
   )
 }
 

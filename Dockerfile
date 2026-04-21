@@ -4,7 +4,13 @@ WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 COPY frontend/ ./
-RUN npm run build
+# vite.config.ts outputs to ../app/static (relative to /frontend → /app/static)
+RUN npm run build && \
+    test -f /app/static/index.html || { \
+      echo "ERROR: frontend build did not produce /app/static/index.html"; \
+      ls -la /app/static 2>/dev/null || true; \
+      exit 1; \
+    }
 
 # Stage 2: Python app
 FROM python:3.12-slim

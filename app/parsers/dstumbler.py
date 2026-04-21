@@ -19,7 +19,7 @@ class DStumblerParser(BaseParser):
 
     def parse(self, content: bytes, filename: str) -> list[NetworkObservation]:
         try:
-            text = content.decode('utf-8', errors='replace')
+            text = content.decode('utf-8-sig', errors='replace')
         except Exception:
             return []
 

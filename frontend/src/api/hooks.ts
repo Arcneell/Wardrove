@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiFetch, authFetch, BASE } from './client'
+import { useAuthStore } from '@/stores/authStore'
 import type {
   GlobalStats, LeaderboardEntry, UserProfile, Badge,
   BtDevice, CellTower, UploadTransaction, PaginatedResponse,
@@ -33,7 +34,7 @@ function useAPI<T>(path: string | null, deps: unknown[] = []) {
 
 // ── Stats ──
 export function useGlobalStats() {
-  return useAPI<GlobalStats>('/stats/')
+  return useAPI<GlobalStats>('/stats')
 }
 
 export function useLeaderboard(sortBy: string = 'xp', limit = 50, offset = 0) {
@@ -61,7 +62,7 @@ export function useTopSSIDs(limit = 20) {
 
 // ── Profile ──
 export function useMyProfile(enabled = true) {
-  return useAPI<UserProfile>(enabled ? '/profile/' : null)
+  return useAPI<UserProfile>(enabled ? '/profile' : null)
 }
 
 export function useUserProfile(userId: number | string | undefined) {
@@ -93,37 +94,101 @@ export function useCellTowers(offset = 0, limit = 50, radio = '') {
 // ── Uploads ──
 export function useUploadHistory(limit = 50, offset = 0, enabled = true) {
   return useAPI<UploadTransaction[]>(
-    enabled ? `/upload/?limit=${limit}&offset=${offset}` : null,
+    enabled ? `/upload?limit=${limit}&offset=${offset}` : null,
     [limit, offset],
   )
 }
 
 // ── Upload SSE ──
+// EventSource can't attach an Authorization header, so the backend also
+// accepts ?token=<access_token>. We additionally fall back to polling the
+// /upload/status/:id endpoint every 2s if the stream drops or the browser
+// blocks third-party EventSource.
 export function useUploadSSE(transactionId: number | null) {
   const [status, setStatus] = useState<UploadTransaction | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    if (!transactionId) return
-    const es = new EventSource(`${BASE}/upload/status/${transactionId}/stream`)
+    if (!transactionId) {
+      setStatus(null)
+      return
+    }
+
+    let cancelled = false
+
+    const stopPoll = () => {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current)
+        pollTimerRef.current = null
+      }
+    }
+
+    const finish = () => {
+      stopPoll()
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+    }
+
+    const applyUpdate = (data: Partial<UploadTransaction> & { status?: string }) => {
+      if (cancelled) return
+      setStatus((prev) => ({ ...(prev || ({} as UploadTransaction)), ...data }) as UploadTransaction)
+      if (data.status === 'done' || data.status === 'error') {
+        finish()
+      }
+    }
+
+    const startPoll = () => {
+      if (pollTimerRef.current) return
+      pollTimerRef.current = setInterval(async () => {
+        try {
+          const tx = await apiFetch<UploadTransaction>(`/upload/status/${transactionId}`)
+          applyUpdate(tx)
+        } catch {
+          // Ignore transient polling failures — next tick retries.
+        }
+      }, 2000)
+    }
+
+    const token = useAuthStoreGet()
+    const url = token
+      ? `${BASE}/upload/status/${transactionId}/stream?token=${encodeURIComponent(token)}`
+      : `${BASE}/upload/status/${transactionId}/stream`
+    const es = new EventSource(url, { withCredentials: true })
     eventSourceRef.current = es
 
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        setStatus(data)
-        if (data.status === 'done' || data.status === 'error') {
-          es.close()
-        }
-      } catch {}
+        applyUpdate(data)
+      } catch {
+        // ignore malformed events
+      }
     }
 
-    es.onerror = () => { es.close() }
+    es.onerror = () => {
+      // Stream dropped — fall back to polling so the UI still completes.
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+      if (!cancelled) startPoll()
+    }
 
-    return () => { es.close() }
+    return () => {
+      cancelled = true
+      finish()
+    }
   }, [transactionId])
 
   return status
+}
+
+function useAuthStoreGet(): string | null {
+  // Access without subscribing to re-renders.
+  return useAuthStore.getState().accessToken
 }
 
 // ── File upload ──
@@ -136,7 +201,7 @@ export function useFileUpload() {
     try {
       const formData = new FormData()
       files.forEach((f) => formData.append('files', f))
-      const res = await authFetch('/upload/', { method: 'POST', body: formData })
+      const res = await authFetch('/upload', { method: 'POST', body: formData })
       if (res.ok) {
         const data = await res.json()
         setTransactions(data)

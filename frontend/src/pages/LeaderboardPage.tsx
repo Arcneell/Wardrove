@@ -2,146 +2,247 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useLeaderboard } from '@/api/hooks'
-import { Wifi, Star, Crown, Medal, Award } from 'lucide-react'
 import { formatNumber } from '@/lib/format'
 import { rankTitle, formatXP } from '@/lib/xp'
+import { useAuthStore } from '@/stores/authStore'
+import { PageHeader, ParchmentCard, WaxSeal } from '@/components/parchment/Primitives'
+import { PodiumCard } from '@/components/parchment/RpgBits'
+import type { LeaderboardEntry } from '@/api/types'
+
+type SortMode = 'xp' | 'wifi'
 
 export function LeaderboardPage() {
-  const [sortBy, setSortBy] = useState('xp')
+  const [sortBy, setSortBy] = useState<SortMode>('xp')
   const { data: entries, loading } = useLeaderboard(sortBy, 100)
-  const top3 = entries?.slice(0, 3) ?? []
-  const rest = entries?.slice(3) ?? []
+  const { user } = useAuthStore()
+  const list = entries ?? []
+  const top3 = list.slice(0, 3)
+  const rest = list.slice(3)
+
+  const valueOf = (entry: LeaderboardEntry) =>
+    sortBy === 'xp' ? entry.xp : entry.wifi_discovered ?? 0
+  const valueLabel = sortBy === 'xp' ? 'Experience' : 'Networks'
 
   return (
-    <div className="flex-1 min-h-0">
-      <div className="max-w-5xl mx-auto px-8 py-8 space-y-6">
-        <header className="text-center space-y-2">
-          <h1 className="font-display text-3xl font-bold text-wax-red tracking-wide">Arena Rankings</h1>
-          <p className="text-base text-sepia">Names etched in ink — ranked by renown or networks sighted.</p>
-        </header>
+    <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        padding: 'var(--page-pad-y) var(--page-pad-x)',
+      }}
+    >
+      <div style={{ maxWidth: 1040, margin: '0 auto', width: '100%' }}>
+        <PageHeader
+          title="The Arena"
+          subtitle="Names etched in ink, ranked by renown or networks sighted"
+        />
 
-        <div className="flex justify-center gap-2">
-          {[
-            { key: 'xp', icon: <Star size={16} strokeWidth={1.75} />, label: 'By XP' },
-            { key: 'wifi', icon: <Wifi size={16} strokeWidth={1.75} />, label: 'By WiFi' },
-          ].map((s) => (
-            <button key={s.key} type="button" onClick={() => setSortBy(s.key)}
-              className={`btn-parchment text-sm ${sortBy === s.key ? 'active' : ''}`}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 8,
+            marginBottom: 32,
+          }}
+        >
+          {(['xp', 'wifi'] as const).map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSortBy(key)}
+              className={`btn-parchment ${sortBy === key ? 'active' : ''}`}
+              aria-pressed={sortBy === key}
             >
-              {s.icon} {s.label}
+              {key === 'xp' ? 'By Experience' : 'By Networks'}
             </button>
           ))}
         </div>
 
-        {top3.length >= 3 && (
-          <div className="flex w-full items-end justify-center gap-10 mb-4">
-            <PodiumCard entry={top3[1]} position={2} />
-            <PodiumCard entry={top3[0]} position={1} />
-            <PodiumCard entry={top3[2]} position={3} />
-          </div>
-        )}
-
-        <section className="rulebook-frame bg-parchment overflow-hidden">
-          {loading ? (
-            <div className="py-24 text-center text-gray-800 font-mono space-y-6 leading-relaxed text-base">
-              <div className="w-8 h-8 border-2 border-ink border-t-transparent animate-spin mx-auto" />
-              <p>Reading the rolls…</p>
+        {loading ? (
+          <ParchmentCard padding={40} style={{ textAlign: 'center' }}>
+            <div
+              className="font-body"
+              style={{ fontStyle: 'italic', color: 'var(--color-sepia)' }}
+            >
+              Reading the rolls…
             </div>
-          ) : (
-            <ol className="list-none w-full">
-              {rest.map((entry, i) => (
-                <motion.li
-                  key={entry.user_id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.01 }}
-                  className="ledger-line grid grid-cols-[56px_40px_minmax(200px,1fr)_120px_220px] items-center gap-x-4 px-6 py-4"
-                >
-                  <span className="font-mono text-sm font-bold tabular-nums text-sepia text-right">
-                    #{entry.rank}
-                  </span>
-                  {entry.avatar_url ? (
-                    <img src={entry.avatar_url} alt="" className="h-8 w-8 shrink-0 border-2 border-ink object-cover" style={{ boxShadow: '2px 2px 0 0 #1a1a1a' }} />
-                  ) : (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-ink bg-[#ebe4d0] font-display font-bold text-xs text-sepia" style={{ boxShadow: '2px 2px 0 0 #1a1a1a' }}>
-                      {entry.username[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <Link to={`/profile/${entry.user_id}`} className="block truncate font-display text-sm font-semibold text-ink hover:text-wax-red transition-colors">
-                      {entry.username}
-                    </Link>
-                    <p className="font-display text-xs text-sepia">{rankTitle(entry.level).name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-sm font-bold text-gold-tarnish">Lvl {entry.level}</p>
-                    <p className="font-mono text-xs text-sepia">{formatXP(entry.xp)}</p>
-                  </div>
-                  <div className="flex gap-4 justify-end">
-                    <LedgerMiniStat label="WiFi" value={entry.wifi_discovered} color="text-wifi" />
-                    <LedgerMiniStat label="BT" value={entry.bt_discovered} color="text-bt" />
-                    <LedgerMiniStat label="Cell" value={entry.cell_discovered} color="text-cell" />
-                  </div>
-                </motion.li>
-              ))}
-            </ol>
-          )}
-        </section>
+          </ParchmentCard>
+        ) : list.length === 0 ? (
+          <ParchmentCard padding={40} style={{ textAlign: 'center' }}>
+            <div
+              className="font-body"
+              style={{ fontStyle: 'italic', color: 'var(--color-sepia)' }}
+            >
+              No heralds have yet registered their names.
+            </div>
+          </ParchmentCard>
+        ) : (
+          <>
+            {top3.length > 0 && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: top3.length === 3 ? '1fr 1.15fr 1fr' : `repeat(${top3.length}, 1fr)`,
+                  gap: 20,
+                  alignItems: 'end',
+                  marginBottom: 40,
+                  maxWidth: 820,
+                  marginInline: 'auto',
+                }}
+              >
+                {top3.length >= 2 && (
+                  <PodiumCard
+                    rank={2}
+                    height={170}
+                    username={top3[1].username}
+                    value={sortBy === 'xp' ? formatXP(top3[1].xp) : formatNumber(valueOf(top3[1]))}
+                    valueLabel={valueLabel}
+                    level={top3[1].level}
+                  />
+                )}
+                <PodiumCard
+                  rank={1}
+                  height={210}
+                  username={top3[0].username}
+                  value={sortBy === 'xp' ? formatXP(top3[0].xp) : formatNumber(valueOf(top3[0]))}
+                  valueLabel={valueLabel}
+                  level={top3[0].level}
+                  crown
+                />
+                {top3.length >= 3 && (
+                  <PodiumCard
+                    rank={3}
+                    height={150}
+                    username={top3[2].username}
+                    value={sortBy === 'xp' ? formatXP(top3[2].xp) : formatNumber(valueOf(top3[2]))}
+                    valueLabel={valueLabel}
+                    level={top3[2].level}
+                  />
+                )}
+              </div>
+            )}
+
+            <ParchmentCard padding={0}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 13,
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      background: 'var(--color-parchment-dark)',
+                      borderBottom: '2px solid var(--color-ink)',
+                    }}
+                  >
+                    {['Rank', 'Herald', 'Rank Title', 'Level', 'XP', 'WiFi', 'BT', 'Cell'].map(
+                      (label) => (
+                        <th
+                          key={label}
+                          style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: '0.15em',
+                            textTransform: 'uppercase',
+                            color: 'var(--color-wax-red)',
+                            padding: '12px 14px',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {label}
+                        </th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rest.map((entry, i) => {
+                    const isMe = user?.id === entry.user_id
+                    return (
+                      <motion.tr
+                        key={entry.user_id}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: Math.min(i, 20) * 0.015 }}
+                        style={{
+                          background: isMe
+                            ? 'rgba(139, 26, 26, 0.12)'
+                            : i % 2 === 1
+                              ? 'rgba(139, 69, 19, 0.05)'
+                              : 'transparent',
+                          borderBottom: '1px dotted rgba(26, 20, 16, 0.25)',
+                        }}
+                      >
+                        <td style={{ padding: '10px 14px' }}>
+                          <WaxSeal label={String(entry.rank)} size={30} rotate={-3} />
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <Link
+                            to={`/profile/${entry.user_id}`}
+                            style={{
+                              fontFamily: 'var(--font-display)',
+                              fontWeight: 700,
+                              fontSize: 13,
+                              color: 'var(--color-ink)',
+                              letterSpacing: '0.04em',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            {entry.username}
+                          </Link>
+                        </td>
+                        <td
+                          style={{
+                            padding: '10px 14px',
+                            fontSize: 11,
+                            fontStyle: 'italic',
+                            color: 'var(--color-sepia)',
+                          }}
+                        >
+                          {rankTitle(entry.level).name}
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span
+                            className="font-mono"
+                            style={{ color: 'var(--color-gold-tarnish)', fontWeight: 700 }}
+                          >
+                            {entry.level}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-ink)' }}>
+                            {formatXP(entry.xp)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-layer-wifi)' }}>
+                            {formatNumber(entry.wifi_discovered ?? 0)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-layer-bt)' }}>
+                            {formatNumber(entry.bt_discovered ?? 0)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span className="font-mono" style={{ color: 'var(--color-layer-cell)' }}>
+                            {formatNumber(entry.cell_discovered ?? 0)}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </ParchmentCard>
+          </>
+        )}
       </div>
     </div>
-  )
-}
-
-function LedgerMiniStat({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="text-center">
-      <p className={`font-mono text-sm font-semibold ${color} tabular-nums`}>{formatNumber(value)}</p>
-      <p className="text-xs uppercase tracking-wider text-sepia">{label}</p>
-    </div>
-  )
-}
-
-function PodiumCard({ entry, position }: { entry: any; position: number }) {
-  const cfg = {
-    1: { h: 'h-44', border: 'border-ink', bg: 'bg-parchment', text: 'text-gold-tarnish', icon: <Crown size={24} strokeWidth={1.5} /> },
-    2: { h: 'h-36', border: 'border-ink', bg: 'bg-[#ebe4d0]', text: 'text-gray-800', icon: <Medal size={22} strokeWidth={1.5} /> },
-    3: { h: 'h-32', border: 'border-ink', bg: 'bg-[#e8dfd0]', text: 'text-wax-red', icon: <Award size={22} strokeWidth={1.5} /> },
-  }[position]!
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: position * 0.1 }}
-      className={`flex flex-col items-center ${position === 1 ? 'order-2' : position === 2 ? 'order-1' : 'order-3'}`}
-    >
-      <div className={`${cfg.text} mb-4`}>{cfg.icon}</div>
-      {entry.avatar_url ? (
-        <img
-          src={entry.avatar_url}
-          alt=""
-          className="w-16 h-16 border-[3px] border-double border-ink mb-4 object-cover"
-          style={{ boxShadow: '4px 4px 0 0 #1a1a1a' }}
-        />
-      ) : (
-        <div
-          className={`w-16 h-16 ${cfg.bg} border-[3px] ${cfg.border} mb-4 flex items-center justify-center font-display font-bold text-lg text-gray-900`}
-          style={{ boxShadow: '4px 4px 0 0 #1a1a1a' }}
-        >
-          {entry.username[0].toUpperCase()}
-        </div>
-      )}
-      <Link to={`/profile/${entry.user_id}`} className="font-display font-semibold text-base text-gray-900 hover:text-wax-red transition-colors text-center leading-relaxed">
-        {entry.username}
-      </Link>
-      <p className={`text-sm font-mono font-bold ${cfg.text} leading-relaxed`}>Lvl {entry.level}</p>
-      <p className="text-sm font-mono text-gray-900 leading-relaxed">{formatXP(entry.xp)}</p>
-      <div
-        className={`${cfg.h} w-24 ${cfg.bg} border-4 border-double ${cfg.border} mt-6 flex items-end justify-center pb-3`}
-        style={{ boxShadow: '5px 5px 0 0 #1a1a1a' }}
-      >
-        <span className={`font-display font-bold text-2xl ${cfg.text}`}>#{position}</span>
-      </div>
-    </motion.div>
   )
 }

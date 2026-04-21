@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useBtDevices, useCellTowers } from '@/api/hooks'
-import { Bluetooth, Radio, ChevronLeft, ChevronRight } from 'lucide-react'
 import { SearchField } from '@/components/ui/SearchField'
 import { formatNumber, timeAgo } from '@/lib/format'
+import { PageHeader, ParchmentCard, RibbonTabs, InkPill } from '@/components/parchment/Primitives'
 import type { BtDevice, CellTower } from '@/api/types'
 
 type Tab = 'bluetooth' | 'cell'
@@ -21,195 +21,341 @@ export function ArmoryPage() {
 
   const btRows = btData?.results ?? []
   const cellRows = cellData?.results ?? []
-  const btTotalPages = Math.ceil((btData?.total ?? 0) / 50)
-  const cellTotalPages = Math.ceil((cellData?.total ?? 0) / 50)
+  const btTotalPages = Math.max(1, Math.ceil((btData?.total ?? 0) / 50))
+  const cellTotalPages = Math.max(1, Math.ceil((cellData?.total ?? 0) / 50))
   const loading = tab === 'bluetooth' ? btLoading : cellLoading
   const page = tab === 'bluetooth' ? btPage : cellPage
   const totalPages = tab === 'bluetooth' ? btTotalPages : cellTotalPages
   const setPage = tab === 'bluetooth' ? setBtPage : setCellPage
+  const totalForTab = tab === 'bluetooth' ? btData?.total ?? 0 : cellData?.total ?? 0
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="mb-1 w-full shrink-0 space-y-4 px-8 pt-5 pb-4">
-        <header className="mx-auto w-full max-w-3xl space-y-6 text-center">
-          <h1 className="font-display text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 text-gray-900">
-            The Armory
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg text-gray-800 font-sans leading-relaxed">
-            Ledger of captured gear and chalked towers — one ruled line per entry, guild-book style.
-          </p>
-        </header>
+    <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        padding: 'var(--page-pad-y) var(--page-pad-x)',
+      }}
+    >
+      <PageHeader
+        title="The Armory"
+        subtitle="Inventory of captured bluetooth wraiths and charted towers"
+      />
 
-        <div className="flex w-full flex-col items-center gap-8 text-center">
-          <div className="flex flex-wrap justify-center gap-5" role="tablist" aria-label="Armory categories">
-            <TabSeal active={tab === 'bluetooth'} onClick={() => setTab('bluetooth')} icon={<Bluetooth size={18} strokeWidth={1.75} />} label="Bluetooth" count={btData?.total} />
-            <TabSeal active={tab === 'cell'} onClick={() => setTab('cell')} icon={<Radio size={18} strokeWidth={1.75} />} label="Cell" count={cellData?.total} />
-          </div>
-
-          {tab === 'bluetooth' && (
-            <div className="mx-auto w-full max-w-xl">
-              <SearchField
-                value={btSearch}
-                onChange={(v) => { setBtSearch(v); setBtPage(0) }}
-                placeholder="Search by name or address…"
-                ariaLabel="Search Bluetooth devices by name or address"
-              />
-            </div>
-          )}
-
-          {tab === 'cell' && (
-            <div className="flex w-full max-w-4xl flex-wrap justify-center gap-4">
-              {radios.map((r) => (
-                <button
-                  key={r || 'all'}
-                  type="button"
-                  onClick={() => { setCellRadio(r); setCellPage(0) }}
-                  className={`btn-parchment px-3 py-1.5 text-xs font-mono ${cellRadio === r ? 'active' : ''}`}
-                  aria-pressed={cellRadio === r}
-                >
-                  {r || 'All'}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mx-auto max-w-3xl text-center text-sm font-mono text-sepia">
-          {formatNumber(tab === 'bluetooth' ? (btData?.total ?? 0) : (cellData?.total ?? 0))} entries in the current ledger.
-        </div>
+      <div style={{ maxWidth: 900, margin: '0 auto', width: '100%' }}>
+        <RibbonTabs<Tab>
+          tabs={[
+            { id: 'bluetooth', label: `Bluetooth (${formatNumber(btData?.total ?? 0)})` },
+            { id: 'cell', label: `Cell Towers (${formatNumber(cellData?.total ?? 0)})` },
+          ]}
+          active={tab}
+          onChange={setTab}
+        />
       </div>
 
-      <div className="min-h-0 w-full min-w-0 flex-1 overflow-hidden px-8 pb-6">
-        <div className="rulebook-frame h-full min-h-[240px] flex flex-col bg-parchment overflow-hidden w-full">
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 16 }}>
+        {tab === 'bluetooth' ? (
+          <div style={{ width: 420, maxWidth: '100%' }}>
+            <SearchField
+              value={btSearch}
+              onChange={(v) => {
+                setBtSearch(v)
+                setBtPage(0)
+              }}
+              placeholder="Search by name or MAC…"
+              ariaLabel="Search Bluetooth devices"
+            />
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+            {radios.map((r) => (
+              <button
+                key={r || 'all'}
+                type="button"
+                onClick={() => {
+                  setCellRadio(r)
+                  setCellPage(0)
+                }}
+                className={`btn-parchment ${cellRadio === r ? 'active' : ''}`}
+                aria-pressed={cellRadio === r}
+                style={{ padding: '6px 12px', fontSize: 11 }}
+              >
+                {r || 'All'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <ParchmentCard padding={0} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-12 text-sepia">
-              <div className="w-8 h-8 border-2 border-ink border-t-transparent animate-spin" />
-              <p className="font-display text-base text-gray-800 tracking-wide leading-relaxed">Opening the folio…</p>
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 40,
+                color: 'var(--color-sepia)',
+                fontStyle: 'italic',
+                fontSize: 14,
+              }}
+            >
+              The scouts have not yet returned…
             </div>
           ) : tab === 'bluetooth' ? (
             btRows.length === 0 ? (
-              <EmptyLedger message="No Bluetooth devices yet. Upload some captures!" />
+              <Empty message="No bluetooth wraiths in these lands yet." />
             ) : (
-              <LedgerList>
-                {btRows.map((r) => (
-                  <BtLedgerRow key={`${r.mac}-${r.last_seen}`} row={r} />
-                ))}
-              </LedgerList>
+              <ArmoryTable>
+                <thead>
+                  <HeaderRow
+                    cols={['Device', 'MAC', 'Type', 'RSSI', 'Sightings', 'Last seen']}
+                  />
+                </thead>
+                <tbody>
+                  {btRows.map((r, i) => (
+                    <BtRow key={`${r.mac}-${r.last_seen}`} row={r} zebra={i % 2 === 1} />
+                  ))}
+                </tbody>
+              </ArmoryTable>
             )
+          ) : cellRows.length === 0 ? (
+            <Empty message="No towers recorded yet." />
           ) : (
-            cellRows.length === 0 ? (
-              <EmptyLedger message="No cell towers found yet." />
-            ) : (
-              <LedgerList>
-                {cellRows.map((r) => (
-                  <CellLedgerRow key={`${r.mcc}-${r.mnc}-${r.lac}-${r.cid}`} row={r} />
+            <ArmoryTable>
+              <thead>
+                <HeaderRow
+                  cols={['Operator', 'MCC/MNC', 'LAC/CID', 'RAT', 'RSSI', 'Last seen']}
+                />
+              </thead>
+              <tbody>
+                {cellRows.map((r, i) => (
+                  <CellRow
+                    key={`${r.mcc}-${r.mnc}-${r.lac}-${r.cid}`}
+                    row={r}
+                    zebra={i % 2 === 1}
+                  />
                 ))}
-              </LedgerList>
-            )
+              </tbody>
+            </ArmoryTable>
           )}
 
           {totalPages > 1 && !loading && (
-            <footer className="sticky bottom-0 flex items-center justify-center gap-4 border-t-2 border-ink bg-[#ebe4d0] px-4 py-3">
-              <button type="button" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}
-                className="p-1.5 text-sepia hover:text-ink disabled:opacity-25 transition-colors" aria-label="Previous page">
-                <ChevronLeft size={18} strokeWidth={1.75} />
+            <footer
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+                padding: '10px 16px',
+                borderTop: '2px solid var(--color-ink)',
+                background: 'var(--color-parchment-dark)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setPage(Math.max(0, page - 1))}
+                disabled={page === 0}
+                className="btn-parchment"
+                style={{ padding: '4px 10px' }}
+                aria-label="Previous page"
+              >
+                ‹
               </button>
-              <span className="text-xs font-mono tabular-nums text-sepia">Page {page + 1} of {totalPages} · {formatNumber(tab === 'bluetooth' ? (btData?.total ?? 0) : (cellData?.total ?? 0))} results</span>
-              <button type="button" onClick={() => setPage(page + 1)} disabled={page >= totalPages - 1}
-                className="p-1.5 text-sepia hover:text-ink disabled:opacity-25 transition-colors" aria-label="Next page">
-                <ChevronRight size={18} strokeWidth={1.75} />
+              <span
+                className="font-mono"
+                style={{ fontSize: 11, color: 'var(--color-sepia)' }}
+              >
+                Folio {page + 1} of {totalPages} · {formatNumber(totalForTab)} entries
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= totalPages - 1}
+                className="btn-parchment"
+                style={{ padding: '4px 10px' }}
+                aria-label="Next page"
+              >
+                ›
               </button>
             </footer>
           )}
-        </div>
+        </ParchmentCard>
       </div>
     </div>
   )
 }
 
-function TabSeal({ active, onClick, icon, label, count }: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  count?: number
-}) {
+function ArmoryTable({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      role="tab"
-      aria-selected={active}
-      aria-pressed={active}
-      className={`btn-parchment gap-2 px-4 py-2 text-sm ${active ? 'active' : ''}`}
-    >
-      {icon}
-      {label}
-      {count != null && <span className="font-mono text-sm opacity-80 tabular-nums">({formatNumber(count)})</span>}
-    </button>
-  )
-}
-
-function LedgerList({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex-1 overflow-y-auto scroll-pb-4">
-      <ul className="list-none divide-y divide-black/15">
+    <div style={{ flex: 1, overflow: 'auto' }}>
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          fontFamily: 'var(--font-body)',
+          fontSize: 13,
+        }}
+      >
         {children}
-      </ul>
+      </table>
     </div>
   )
 }
 
-function EmptyLedger({ message }: { message: string }) {
+function HeaderRow({ cols }: { cols: string[] }) {
   return (
-    <div className="flex-1 flex items-center justify-center p-16 text-center">
-      <p className="text-gray-800 text-lg font-sans max-w-md leading-relaxed">{message}</p>
-    </div>
+    <tr
+      style={{
+        background: 'var(--color-parchment-dark)',
+        borderBottom: '2px solid var(--color-ink)',
+      }}
+    >
+      {cols.map((c) => (
+        <th
+          key={c}
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: 'var(--color-wax-red)',
+            padding: '12px 16px',
+            textAlign: 'left',
+            position: 'sticky',
+            top: 0,
+            background: 'var(--color-parchment-dark)',
+          }}
+        >
+          {c}
+        </th>
+      ))}
+    </tr>
   )
 }
 
-function BtLedgerRow({ row }: { row: BtDevice }) {
+function BtRow({ row, zebra }: { row: BtDevice; zebra: boolean }) {
   return (
-    <li className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4">
-      <div className="min-w-0 flex-1">
-        <p className={`font-display text-sm font-semibold ${row.name ? 'text-ink' : 'text-muted italic'}`}>
+    <tr
+      style={{
+        background: zebra ? 'rgba(139, 69, 19, 0.05)' : 'transparent',
+        borderBottom: '1px dotted rgba(26, 20, 16, 0.25)',
+      }}
+    >
+      <Td>
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontWeight: 700,
+            color: row.name ? 'var(--color-ink)' : 'var(--color-sepia-muted)',
+            fontStyle: row.name ? 'normal' : 'italic',
+          }}
+        >
           {row.name || '<unknown>'}
-        </p>
-        <p className="font-mono text-xs text-sepia break-all">{row.mac}</p>
-      </div>
-      <span className={`inline-flex items-center px-2.5 py-1 border border-ink text-[10px] font-mono font-bold ${
-        row.device_type === 'BLE' ? 'bg-parchment text-ink' : 'bg-[#ebe4d0] text-bt'
-      }`}>
-        {row.device_type}
-      </span>
-      <span className="font-mono text-xs text-sepia tabular-nums w-16 text-right">
-        {row.rssi != null ? `${row.rssi} dBm` : '—'}
-      </span>
-      <div className="text-right text-xs shrink-0">
-        <p className="font-mono text-muted">{row.latitude.toFixed(4)}, {row.longitude.toFixed(4)}</p>
-        <p className="text-sepia">{timeAgo(row.last_seen)}</p>
-      </div>
-    </li>
+        </span>
+      </Td>
+      <Td>
+        <span className="font-mono" style={{ fontSize: 11, color: 'var(--color-sepia)' }}>
+          {row.mac}
+        </span>
+      </Td>
+      <Td>
+        <InkPill>{row.device_type}</InkPill>
+      </Td>
+      <Td>
+        <span className="font-mono" style={{ color: 'var(--color-ink)' }}>
+          {row.rssi != null ? `${row.rssi} dBm` : '—'}
+        </span>
+      </Td>
+      <Td>
+        <span className="font-mono" style={{ color: 'var(--color-sepia)' }}>
+          {formatNumber(row.seen_count ?? 0)}
+        </span>
+      </Td>
+      <Td>
+        <span style={{ fontSize: 11, color: 'var(--color-sepia)', fontStyle: 'italic' }}>
+          {timeAgo(row.last_seen)}
+        </span>
+      </Td>
+    </tr>
   )
 }
 
-function CellLedgerRow({ row }: { row: CellTower }) {
+function CellRow({ row, zebra }: { row: CellTower; zebra: boolean }) {
   return (
-    <li className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4">
-      <span className="inline-flex items-center px-2.5 py-1 border border-ink text-[10px] font-mono font-bold bg-parchment text-cell">
-        {row.radio}
-      </span>
-      <div className="min-w-0 flex-1 font-mono text-xs">
-        <p className="text-ink">MCC {row.mcc} / MNC {row.mnc}</p>
-        <p className="text-sepia">LAC {row.lac} / CID {row.cid}</p>
-      </div>
-      <span className="font-mono text-xs text-sepia tabular-nums w-16 text-right">
-        {row.rssi != null ? `${row.rssi} dBm` : '—'}
-      </span>
-      <div className="text-right text-xs shrink-0">
-        <p className="font-mono text-muted">{row.latitude.toFixed(4)}, {row.longitude.toFixed(4)}</p>
-        <p className="text-sepia">{timeAgo(row.last_seen)}</p>
-      </div>
-    </li>
+    <tr
+      style={{
+        background: zebra ? 'rgba(139, 69, 19, 0.05)' : 'transparent',
+        borderBottom: '1px dotted rgba(26, 20, 16, 0.25)',
+      }}
+    >
+      <Td>
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontWeight: 700,
+            color: 'var(--color-ink)',
+          }}
+        >
+          {row.radio}
+        </span>
+      </Td>
+      <Td>
+        <span className="font-mono" style={{ fontSize: 11, color: 'var(--color-sepia)' }}>
+          {row.mcc}/{row.mnc}
+        </span>
+      </Td>
+      <Td>
+        <span className="font-mono" style={{ fontSize: 11, color: 'var(--color-sepia)' }}>
+          {row.lac}/{row.cid}
+        </span>
+      </Td>
+      <Td>
+        <InkPill>{row.radio}</InkPill>
+      </Td>
+      <Td>
+        <span className="font-mono" style={{ color: 'var(--color-ink)' }}>
+          {row.rssi != null ? `${row.rssi} dBm` : '—'}
+        </span>
+      </Td>
+      <Td>
+        <span style={{ fontSize: 11, color: 'var(--color-sepia)', fontStyle: 'italic' }}>
+          {timeAgo(row.last_seen)}
+        </span>
+      </Td>
+    </tr>
+  )
+}
+
+function Td({ children }: { children: React.ReactNode }) {
+  return (
+    <td style={{ padding: '10px 16px', verticalAlign: 'middle' }}>{children}</td>
+  )
+}
+
+function Empty({ message }: { message: string }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+        color: 'var(--color-sepia)',
+        fontFamily: 'var(--font-body)',
+        fontStyle: 'italic',
+        fontSize: 14,
+        textAlign: 'center',
+      }}
+    >
+      {message}
+    </div>
   )
 }

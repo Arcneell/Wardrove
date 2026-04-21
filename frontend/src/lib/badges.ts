@@ -9,21 +9,41 @@ export interface TierStyle {
   glowClass: string
 }
 
-const TIER_STYLES: Record<number, TierStyle> = {
-  1:  { name: 'common',    label: 'Common',     color: '#7a7486', bgColor: 'rgba(122,116,134,0.08)', borderColor: 'rgba(122,116,134,0.25)', glowClass: 'glow-common' },
-  2:  { name: 'uncommon',  label: 'Uncommon',   color: '#44d97f', bgColor: 'rgba(68,217,127,0.08)',  borderColor: 'rgba(68,217,127,0.25)',  glowClass: 'glow-uncommon' },
-  3:  { name: 'rare',      label: 'Rare',       color: '#3ea8f5', bgColor: 'rgba(62,168,245,0.08)',  borderColor: 'rgba(62,168,245,0.25)',  glowClass: 'glow-rare' },
-  4:  { name: 'epic',      label: 'Epic',       color: '#9366e8', bgColor: 'rgba(147,102,232,0.08)', borderColor: 'rgba(147,102,232,0.25)', glowClass: 'glow-epic' },
-  5:  { name: 'legendary', label: 'Legendary',  color: '#e8b830', bgColor: 'rgba(232,184,48,0.08)',  borderColor: 'rgba(232,184,48,0.25)',  glowClass: 'glow-legendary' },
-  6:  { name: 'mythic',    label: 'Mythic',     color: '#d94089', bgColor: 'rgba(217,64,137,0.08)',  borderColor: 'rgba(217,64,137,0.25)',  glowClass: 'glow-mythic' },
-  7:  { name: 'mythic',    label: 'Mythic II',  color: '#d94089', bgColor: 'rgba(217,64,137,0.12)',  borderColor: 'rgba(217,64,137,0.35)',  glowClass: 'glow-mythic' },
-  8:  { name: 'mythic',    label: 'Mythic III', color: '#e83050', bgColor: 'rgba(232,48,80,0.12)',   borderColor: 'rgba(232,48,80,0.35)',   glowClass: 'glow-mythic' },
-  9:  { name: 'mythic',    label: 'Mythic IV',  color: '#e83050', bgColor: 'rgba(232,48,80,0.15)',   borderColor: 'rgba(232,48,80,0.4)',    glowClass: 'glow-mythic' },
-  10: { name: 'mythic',    label: 'Mythic V',   color: '#ff2040', bgColor: 'rgba(255,32,64,0.15)',   borderColor: 'rgba(255,32,64,0.4)',    glowClass: 'glow-mythic' },
+// Parchment palette — matches globals.css tier custom properties.
+// Tier numbers 1-10 collapse into 6 visual tiers with a trailing label.
+const BASE: Record<TierName, { color: string; glow: string }> = {
+  common:    { color: '#6b4820', glow: 'glow-common' },
+  uncommon:  { color: '#3d5a2a', glow: 'glow-uncommon' },
+  rare:      { color: '#2a4a6b', glow: 'glow-rare' },
+  epic:      { color: '#4a2a6b', glow: 'glow-epic' },
+  legendary: { color: '#8b6914', glow: 'glow-legendary' },
+  mythic:    { color: '#8b1a3a', glow: 'glow-mythic' },
+}
+
+const TIER_MAP: Record<number, { name: TierName; label: string }> = {
+  1:  { name: 'common',    label: 'Common' },
+  2:  { name: 'uncommon',  label: 'Uncommon' },
+  3:  { name: 'rare',      label: 'Rare' },
+  4:  { name: 'epic',      label: 'Epic' },
+  5:  { name: 'legendary', label: 'Legendary' },
+  6:  { name: 'mythic',    label: 'Mythic' },
+  7:  { name: 'mythic',    label: 'Mythic II' },
+  8:  { name: 'mythic',    label: 'Mythic III' },
+  9:  { name: 'mythic',    label: 'Mythic IV' },
+  10: { name: 'mythic',    label: 'Mythic V' },
 }
 
 export function getTierStyle(tier: number): TierStyle {
-  return TIER_STYLES[tier] ?? TIER_STYLES[1]
+  const entry = TIER_MAP[tier] ?? TIER_MAP[1]
+  const base = BASE[entry.name]
+  return {
+    name: entry.name,
+    label: entry.label,
+    color: base.color,
+    bgColor: 'var(--color-parchment-light)',
+    borderColor: base.color,
+    glowClass: base.glow,
+  }
 }
 
 export function getCategoryLabel(category: string): string {

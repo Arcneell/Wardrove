@@ -46,7 +46,7 @@ async def channel_distribution(db: AsyncSession = Depends(get_db)):
         .group_by(WifiNetwork.channel)
         .order_by(WifiNetwork.channel)
     )
-    channels = {str(row[0]): row[1] for row in result.all()}
+    channels = [{"channel": int(row[0]), "count": int(row[1])} for row in result.all()]
     await set_cached_stats("channels", channels)
     return channels
 
@@ -82,8 +82,10 @@ async def manufacturer_distribution(
     result = await db.execute(select(WifiNetwork.bssid))
     macs = [row[0] for row in result.all()]
     stats = get_manufacturer_stats(macs)
-    # Limit
-    top = dict(list(stats.items())[:limit])
+    top = [
+        {"manufacturer": name, "count": int(count)}
+        for name, count in list(stats.items())[:limit]
+    ]
     await set_cached_stats(cache_key, top)
     return top
 
@@ -128,21 +130,13 @@ async def country_stats(db: AsyncSession = Depends(get_db)):
         .group_by(CellTower.mcc)
         .order_by(func.count(CellTower.id).desc())
     )
-    countries = {}
+    # Aggregate by country (several MCCs can map to the same country)
+    agg: dict[str, dict[str, int | str]] = {}
     for mcc, count in result.all():
         country = mcc_map.get(mcc, f"MCC {mcc}")
-        countries[country] = countries.get(country, 0) + count
-
-    # Also count WiFi by rough estimate (total / active countries)
-    wifi_total = await db.scalar(select(func.count(WifiNetwork.id))) or 0
-    bt_total = await db.scalar(select(func.count(BtNetwork.id))) or 0
-
-    data = {
-        "by_cell_mcc": countries,
-        "total_wifi": wifi_total,
-        "total_bt": bt_total,
-        "total_cell": sum(countries.values()),
-    }
+        entry = agg.setdefault(country, {"country": country, "mcc": int(mcc), "count": 0})
+        entry["count"] = int(entry["count"]) + int(count)
+    data = sorted(agg.values(), key=lambda r: r["count"], reverse=True)
     await set_cached_stats("countries", data)
     return data
 
