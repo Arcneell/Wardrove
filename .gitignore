@@ -9,3 +9,6 @@ build/
 node_modules/
 frontend/dist/
 .vite/
+
+# TypeScript incremental build cache — regenerated on every `tsc`
+*.tsbuildinfo
