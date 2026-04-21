@@ -78,14 +78,13 @@ export function HUD() {
       }}
     >
       <div
-        className="mx-auto w-full"
+        className="w-full"
         style={{
-          maxWidth: 1400,
           padding: 'var(--hud-pad-y) var(--hud-pad-x)',
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
-          flexWrap: 'wrap',
+          gap: 'clamp(10px, 1.2vw, 20px)',
+          minWidth: 0,
         }}
       >
         {/* Brand */}
@@ -99,17 +98,19 @@ export function HUD() {
             color: 'var(--color-ink)',
             textDecoration: 'none',
             minWidth: 0,
+            flexShrink: 0,
           }}
         >
           <WaxSeal label="W" size={42} rotate={-6} />
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, minWidth: 0 }}>
             <span
               className="font-display hud-brand-wordmark"
               style={{
-                fontSize: 22,
+                fontSize: 'clamp(16px, 1.4vw, 22px)',
                 fontWeight: 900,
-                letterSpacing: '0.26em',
+                letterSpacing: 'clamp(0.12em, 0.2vw, 0.26em)',
                 color: 'var(--color-ink)',
+                whiteSpace: 'nowrap',
               }}
             >
               WARDROVE
@@ -117,11 +118,14 @@ export function HUD() {
             <span
               className="hud-subtitle"
               style={{
-                fontSize: 12,
+                fontSize: 'clamp(10px, 0.75vw, 12px)',
                 fontStyle: 'italic',
                 color: 'var(--color-sepia)',
-                letterSpacing: '0.06em',
+                letterSpacing: '0.04em',
                 marginTop: 2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               an illuminated atlas of the unseen
@@ -129,7 +133,7 @@ export function HUD() {
           </div>
         </Link>
 
-        {/* Centre nav */}
+        {/* Centre nav — stays on one line, font auto-scales if cramped */}
         <nav
           aria-label="Main navigation"
           className="hud-nav"
@@ -137,8 +141,8 @@ export function HUD() {
             flex: 1,
             display: 'flex',
             justifyContent: 'center',
-            gap: 4,
-            flexWrap: 'wrap',
+            gap: 'clamp(2px, 0.3vw, 6px)',
+            minWidth: 0,
           }}
         >
           {[...PRIMARY_NAV, ...(profileItem ? [profileItem] : [])].map((item) => {
@@ -153,7 +157,12 @@ export function HUD() {
                   textDecoration: 'none',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 'clamp(4px, 0.4vw, 6px)',
+                  padding: 'clamp(8px, 0.8vw, 11px) clamp(8px, 1vw, 20px)',
+                  fontSize: 'clamp(11px, 0.85vw, 13px)',
+                  letterSpacing: 'clamp(0.06em, 0.12vw, 0.12em)',
+                  whiteSpace: 'nowrap',
+                  minWidth: 0,
                 }}
               >
                 <item.Icon size={14} color={active ? 'var(--color-wax-red)' : 'var(--color-sepia)'} />
@@ -164,7 +173,7 @@ export function HUD() {
         </nav>
 
         {/* Right cluster */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 0.8vw, 12px)', flexShrink: 0 }}>
           {isAuthenticated ? (
             <>
               <button

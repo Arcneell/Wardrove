@@ -1,6 +1,9 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet.markercluster'
+// Side-effect import: attaches L.heatLayer() to the Leaflet namespace.
+// Without this the `Heat` toggle is a no-op because L.heatLayer is undefined.
+import 'leaflet.heat'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { useMapStore } from '@/stores/mapStore'
 import { useGlobalStats } from '@/api/hooks'
@@ -189,23 +192,30 @@ export function MapPage() {
         setCounts((prev) => ({ ...prev, wifi: features.length }))
 
         if (viewMode === 'heatmap') {
-          const heatData = features.map((f) => [
+          // Each sample carries the same intensity; overlaps sum to reveal
+          // dense areas. `[lat, lon, intensity]`.
+          const heatData = features.map<[number, number, number]>((f) => [
             f.geometry.coordinates[1],
             f.geometry.coordinates[0],
-            0.5,
+            1,
           ])
           const heatFn = (L as unknown as { heatLayer?: LeafletHeat }).heatLayer
           if (heatData.length > 0 && heatFn) {
             heatRef.current = heatFn(heatData, {
-              radius: 22,
-              blur: 26,
+              radius: 28,
+              blur: 22,
               maxZoom: 17,
+              minOpacity: 0.4,
+              // Classic blue → cyan → lime → yellow → orange → red ramp.
+              // Leaflet.heat treats this as RGBA so fully opaque hot spots
+              // pop over the parchment map.
               gradient: {
-                0.15: 'rgba(232,220,192,0)',
-                0.35: 'rgba(26,20,16,0.25)',
-                0.55: 'rgba(139,26,26,0.45)',
-                0.75: 'rgba(107,72,32,0.55)',
-                1: 'rgba(184,134,11,0.65)',
+                0.0: '#1e3a8a',
+                0.25: '#06b6d4',
+                0.5: '#84cc16',
+                0.7: '#eab308',
+                0.85: '#f97316',
+                1.0: '#dc2626',
               },
             }).addTo(map)
           }
